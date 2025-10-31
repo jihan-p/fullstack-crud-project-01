@@ -11,7 +11,12 @@ interface ProductItemProps {
 }
 
 const ProductItem: React.FC<ProductItemProps> = ({ product, onEdit, onDelete }) => {
-    const productId = product.ID!; // ID dijamin ada karena ini data yang sudah tersimpan
+    const productId = product.ID;
+    
+    if (!productId) {
+        console.error('Product ID is missing:', product);
+        return null; // or render an error state
+    }
     
     return (
         <div className="p-4 border rounded-lg flex justify-between items-center bg-white shadow-sm">

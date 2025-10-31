@@ -8,9 +8,9 @@ import ProductItem from '../components/molecules/ProductItem';
 
 const ProductListPage: React.FC = () => {
     const [products, setProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true); // State untuk mode edit: menyimpan produk yang sedang di-edit
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
+    const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined); // State untuk mode edit: menyimpan produk yang sedang di-edit
 
     // Fungsi untuk mengambil data produk dari backend
     const fetchProducts = useCallback(async () => {
@@ -42,7 +42,6 @@ const ProductListPage: React.FC = () => {
         setEditingProduct(product);
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleFormSuccess = () => {
         setEditingProduct(undefined); // Keluar dari mode edit
         fetchProducts(); // Muat ulang daftar produk

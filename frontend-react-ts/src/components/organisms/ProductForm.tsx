@@ -23,12 +23,15 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, initialProduct }) 
     // Mengisi form jika dalam mode edit
     useEffect(() => {
         if (initialProduct) {
-            // Isi form dengan data yang ada
             setName(initialProduct.name);
             setDescription(initialProduct.description);
             setPrice(initialProduct.price);
+        } else {
+            // Clear form when exiting edit mode
+            setName('');
+            setDescription('');
+            setPrice('');
         }
-        // Bersihkan error saat produk yang diedit berubah
         setError(null); 
     }, [initialProduct]); // <-- Jalankan efek ini saat initialProduct berubah
 
