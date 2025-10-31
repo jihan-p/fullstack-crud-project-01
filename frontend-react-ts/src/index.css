@@ -1,0 +1,6 @@
+/* Pastikan Anda sudah menginstal Tailwind CSS */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Tambahkan styling dasar lainnya di sini */
