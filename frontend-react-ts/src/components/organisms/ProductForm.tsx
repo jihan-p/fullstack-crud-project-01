@@ -1,50 +1,69 @@
 // src/components/organisms/ProductForm.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import FieldGroup from '../molecules/FieldGroup';
 import Button from '../atoms/Button';
-import { createProduct } from '../../api/productApi';
+import { createProduct, updateProduct } from '../../api/productApi';
+import type { Product } from '../../types/Product';
 
 interface ProductFormProps {
     onSuccess: () => void; // Callback setelah submit sukses
+    initialProduct?: Product; // Opsional: data produk untuk mode edit
 }
 
-const ProductForm: React.FC<ProductFormProps> = ({ onSuccess }) => {
-    const [name, setName] = useState('');
-    const [description, setDescription] = useState('');
-    const [price, setPrice] = useState<number | ''>('');
+const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, initialProduct }) => {
+    const [name, setName] = useState(initialProduct?.name || '');
+    const [description, setDescription] = useState(initialProduct?.description || '');
+    const [price, setPrice] = useState<number | ''>(initialProduct?.price || '');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const isEditMode = !!initialProduct;
+
+    // Mengisi form jika dalam mode edit
+    useEffect(() => {
+        if (initialProduct) {
+            // Isi form dengan data yang ada
+            setName(initialProduct.name);
+            setDescription(initialProduct.description);
+            setPrice(initialProduct.price);
+        }
+        // Bersihkan error saat produk yang diedit berubah
+        setError(null); 
+    }, [initialProduct]); // <-- Jalankan efek ini saat initialProduct berubah
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
         setIsLoading(true);
 
+        const productData = {
+            name,
+            description,
+            price: Number(price)
+        };
+
         try {
-            // Memanggil helper API (POST ke Go backend)
-            await createProduct({ 
-                name, 
-                description, 
-                price: Number(price) // Pastikan price dikirim sebagai number
-            });
+            if (isEditMode && initialProduct) {
+                await updateProduct(initialProduct.ID, productData);
+            } else {
+                await createProduct(productData);
+            }
             
-            // Bersihkan form dan panggil callback
-            setName('');
-            setDescription('');
-            setPrice('');
-            onSuccess();
+            onSuccess(); // Panggil callback, form akan di-reset oleh parent component via 'key'
 
         } catch (err) {
-            setError('Gagal membuat produk. Cek konsol untuk detail.');
+            setError(`Gagal ${isEditMode ? 'memperbarui' : 'membuat'} produk. Cek konsol.`);
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <form onSubmit={handleSubmit} className="p-4 border rounded-lg shadow-md">
-            <h3 className="text-xl font-bold mb-4">Tambah Produk Baru</h3>
+        <form onSubmit={handleSubmit} className="p-4 border rounded-lg shadow-md bg-white sticky top-6">
+            <h3 className="text-xl font-bold mb-4">
+                {isEditMode ? `Edit Produk (ID: ${initialProduct.ID})` : 'Tambah Produk Baru'}
+            </h3>
             
             <FieldGroup
                 label="Nama Produk"
@@ -72,8 +91,20 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess }) => {
             {error && <p className="text-red-500 mb-3">{error}</p>}
             
             <Button type="submit" disabled={isLoading || !name || price === ''}>
-                {isLoading ? 'Menyimpan...' : 'Simpan Produk'}
+                {isLoading ? 'Menyimpan...' : (isEditMode ? 'Simpan Perubahan' : 'Simpan Produk')}
             </Button>
+
+            {/* Tombol Batal hanya muncul saat mode edit */}
+            {isEditMode && (
+                <Button
+                    type="button"
+                    variant="secondary"
+                    className="ml-2"
+                    onClick={onSuccess} // onSuccess akan mereset `editingProduct` di parent
+                >
+                    Batal
+                </Button>
+            )}
         </form>
     );
 };

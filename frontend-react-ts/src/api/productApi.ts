@@ -28,4 +28,24 @@ export const createProduct = async (productData: Omit<Product, 'ID' | 'CreatedAt
     }
 };
 
-// Tambahkan update dan delete di sini nanti (Fase 4.2)
+// --- SERVICE PUT (UPDATE) ---
+export const updateProduct = async (id: number, productData: Partial<Product>): Promise<Product> => {
+    try {
+        const response = await axios.put<{ data: Product }>(`${API_BASE_URL}/products/${id}`, productData);
+        return response.data.data;
+    } catch (error) {
+        console.error(`Error updating product ID ${id}:`, error);
+        throw error;
+    }
+};
+
+// --- SERVICE DELETE ---
+export const deleteProduct = async (id: number): Promise<void> => {
+    try {
+        // Go backend mengembalikan status 204 No Content untuk delete
+        await axios.delete(`${API_BASE_URL}/products/${id}`);
+    } catch (error) {
+        console.error(`Error deleting product ID ${id}:`, error);
+        throw error;
+    }
+};
