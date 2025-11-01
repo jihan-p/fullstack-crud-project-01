@@ -1,130 +1,110 @@
 // src/pages/ProductListPage.test.tsx
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { http, HttpResponse } from 'msw';
-import { server } from '../mocks/server';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { resetMockProducts, setMockProducts } from '../mocks/handlers';
 import ProductListPage from './ProductListPage';
 
-const API_BASE_URL = 'http://localhost:8080/api';
+// Helper untuk membuat produk mock
+const createMockProduct = (id: number, name: string, price: number) => ({ ID: id, name, description: `Deskripsi untuk ${name}`, price });
 
-// Reset handler sebelum setiap pengujian untuk memastikan independensi
-beforeEach(() => server.resetHandlers());
+// Definisikan produk dummy yang akan digunakan untuk tes Update/Delete
+const mockInitialProduct = createMockProduct(101, 'Mock Item Pre-seeded', 500000);
 
-// Mock data awal untuk pengujian UPDATE dan DELETE
-const mockInitialProduct = { ID: 1, name: 'Laptop Awal', description: 'Deskripsi Awal', price: 12000000 };
+afterEach(() => {
+  // Membersihkan mock products setelah setiap test untuk memastikan isolasi
+  // Ini akan memanggil server.resetHandlers() juga, jadi tidak perlu dipanggil dua kali.
+  resetMockProducts();
+});
 
 describe('ProductListPage Integration Test (Full CRUD)', () => {
-    // 1. Uji Coba READ (Ambil Data)
+    // 1. Test READ (Menampilkan data)
     test('should fetch and display products on initial load', async () => {
-        // Tambahkan produk dummy awal ke mock database
-        server.use(
-            http.get(`${API_BASE_URL}/products`, () => {
-                return HttpResponse.json({
-                    data: [{ ID: 100, name: 'Dummy Item', description: 'Test', price: 100000 }],
-                });
-            })
-        );
+        // Gunakan setMockProducts untuk mengisi data awal
+        setMockProducts([{
+            ID: 100, // <-- TAMBAHKAN ID
+            name: 'Dummy Item',
+            price: 100000,
+            description: 'Deskripsi Dummy'
+        }]);
 
         render(<ProductListPage />);
         
         // Verifikasi loading state muncul
         expect(screen.getByText(/memuat data.../i)).toBeInTheDocument();
 
-        // Tunggu hingga data muncul
-        await waitFor(() => {
-            expect(screen.queryByText(/memuat data.../i)).not.toBeInTheDocument();
-            expect(screen.getByText(/dummy item/i)).toBeInTheDocument();
-            expect(screen.getByText(/rp100\.000/i)).toBeInTheDocument();
-        });
+        // Tunggu hingga data muncul menggunakan findBy*
+        expect(await screen.findByText(/dummy item/i, {}, { timeout: 4000 })).toBeInTheDocument();
+        expect(screen.getByText(/rp100\.000/i)).toBeInTheDocument();
+        expect(screen.queryByText(/memuat data.../i)).not.toBeInTheDocument();
     });
     
-    // 2. Uji Coba CREATE (Buat Data)
+    // 2. Test CREATE (Membuat data)
     test('should create a new product and update the list', async () => {
         render(<ProductListPage />);
         
         // Tunggu hingga list kosong muncul
-        await waitFor(() => {
-            expect(screen.getByText(/belum ada produk\. silakan tambahkan satu!/i)).toBeInTheDocument();
-        });
+        expect(await screen.findByText(/belum ada produk\. silakan tambahkan satu!/i, {}, { timeout: 2000 })).toBeInTheDocument();
 
         // Isi Form
         fireEvent.change(screen.getByLabelText(/nama produk/i), { target: { value: 'Laptop Baru' } });
         fireEvent.change(screen.getByLabelText(/deskripsi/i), { target: { value: 'Spesifikasi Tinggi' } });
         fireEvent.change(screen.getByLabelText(/harga/i), { target: { value: '15000000' } });
 
-        // Klik Simpan
+        // Klik Simpan Produk
         fireEvent.click(screen.getByRole('button', { name: /simpan produk/i }));
 
         // Tunggu hingga list diperbarui dan produk baru muncul
-        await waitFor(() => {
-            expect(screen.getByText(/laptop baru/i)).toBeInTheDocument();
-            expect(screen.getByText(/rp15\.000\.000/i)).toBeInTheDocument();
-            // Verifikasi form kosong setelah submit sukses
-            expect(screen.getByLabelText(/nama produk/i)).toHaveValue('');
-        }, { timeout: 3000 }); // Beri waktu tunggu lebih karena melibatkan dua request
+        expect(await screen.findByText(/laptop baru/i, {}, { timeout: 4000 })).toBeInTheDocument();
+        expect(screen.getByText(/rp15\.000\.000/i)).toBeInTheDocument();
+        // Verifikasi form kosong setelah submit sukses
+        expect(screen.getByLabelText(/nama produk/i)).toHaveValue('');
     });
 
-    // 3. Uji Coba UPDATE (Ubah Data)
-    test('should update an existing product', async () => {
-        // Sediakan data awal untuk pengujian ini
-        server.use(
-            http.get(`${API_BASE_URL}/products`, () => {
-                return HttpResponse.json({
-                    data: [mockInitialProduct],
-                });
-            })
-        );
+    // Kelompokkan test yang memerlukan data awal
+    describe('when there is an existing product', () => {
+        // FIX KRITIS: Panggil setMockProducts untuk mengisi mock DB sebelum setiap tes di suite ini
+        beforeEach(() => {
+            setMockProducts([mockInitialProduct]);
+        });
 
-        render(<ProductListPage />);
-        
-        // Tunggu hingga item dan tombol Edit-nya muncul
-        expect(await screen.findByText(mockInitialProduct.name)).toBeInTheDocument();
-        const editButton = screen.getByRole('button', { name: 'Edit' });
-        fireEvent.click(editButton);
+        // 3. Test UPDATE (Mengubah data)
+        test('should update an existing product', async () => {
+            render(<ProductListPage />);
+            
+            // Tunggu hingga item dan tombol Edit-nya muncul (Akan berhasil karena mock state sudah terisi)
+            const editButton = await screen.findByRole('button', { name: /edit/i }, { timeout: 4000 });
+            fireEvent.click(editButton);
 
-        // Verifikasi form berubah ke mode Edit
-        expect(screen.getByText(/edit produk/i)).toBeInTheDocument();
+            // Verifikasi form berubah ke mode Edit dan terisi data
+            expect(await screen.findByText(/edit produk/i)).toBeInTheDocument();
+            expect(screen.getByLabelText(/nama produk/i)).toHaveValue(mockInitialProduct.name);
 
-        // Ubah nilai
-        fireEvent.change(screen.getByLabelText(/nama produk/i), { target: { value: 'Laptop Baru [EDITED]' } });
+            // Ubah nilai
+            fireEvent.change(screen.getByLabelText(/nama produk/i), { target: { value: 'Laptop Baru [EDITED]' } });
 
-        // Klik Simpan Perubahan
-        fireEvent.click(screen.getByRole('button', { name: /simpan perubahan/i }));
+            // Klik Simpan Perubahan
+            fireEvent.click(screen.getByRole('button', { name: /simpan perubahan/i }));
 
-        // Tunggu hingga daftar diperbarui
-        await waitFor(() => {
-            expect(screen.getByText(/laptop baru \[edited\]/i)).toBeInTheDocument();
+            // Tunggu hingga daftar diperbarui dan form kembali ke mode Create
+            expect(await screen.findByText(/laptop baru \[edited\]/i)).toBeInTheDocument();
             // Verifikasi kembali ke mode Create
             expect(screen.getByText(/tambah produk baru/i)).toBeInTheDocument();
         });
-    });
 
-    // 4. Uji Coba DELETE (Hapus Data)
-    test('should delete a product and remove it from the list', async () => {
-        // Sediakan data awal untuk pengujian ini
-        server.use(
-            http.get(`${API_BASE_URL}/products`, () => {
-                return HttpResponse.json({
-                    data: [mockInitialProduct],
-                });
-            })
-        );
+        // 4. Test DELETE (Menghapus data)
+        test('should delete a product and remove it from the list', async () => {
+            // Mock window.confirm (karena ada pop-up konfirmasi)
+            window.confirm = jest.fn(() => true); 
 
-        render(<ProductListPage />);
+            render(<ProductListPage />);
 
-        // Tunggu hingga item dan tombol Hapus-nya muncul
-        expect(await screen.findByText(mockInitialProduct.name)).toBeInTheDocument();
-        const deleteButton = screen.getByRole('button', { name: 'Hapus' });
-        
-        // Mock window.confirm (karena ada pop-up konfirmasi)
-        window.confirm = jest.fn(() => true); 
-        
-        fireEvent.click(deleteButton);
-        
-        // Tunggu hingga item dihapus dari daftar
-        await waitFor(() => {
+            // Tunggu hingga item dan tombol Hapus-nya muncul, lalu klik (Akan berhasil karena mock state sudah terisi)
+            const deleteButton = await screen.findByRole('button', { name: /hapus/i }, { timeout: 4000 });
+            fireEvent.click(deleteButton);
+            
+            // Tunggu hingga item dihapus dari daftar dan pesan "empty" muncul
+            expect(await screen.findByText(/belum ada produk\. silakan tambahkan satu!/i)).toBeInTheDocument();
             expect(screen.queryByText(mockInitialProduct.name)).not.toBeInTheDocument();
-            expect(screen.getByText(/belum ada produk\. silakan tambahkan satu!/i)).toBeInTheDocument();
         });
     });
 });

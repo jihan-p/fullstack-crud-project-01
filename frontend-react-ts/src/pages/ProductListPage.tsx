@@ -18,9 +18,10 @@ const ProductListPage: React.FC = () => {
         setError(null);
         try {
             const data = await getAllProducts();
-            setProducts(data);
+            setProducts(data || []); // Fallback to empty array if data is undefined
         } catch (err) {
             setError('Gagal memuat data produk dari API Go.');
+            setProducts([]); // Reset products on error to prevent render issues
         } finally {
             setLoading(false);
         }
