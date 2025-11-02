@@ -25,17 +25,34 @@ export const setMockProducts = (products: Product[]) => {
 export const handlers = [
   // 1. GET ALL PRODUCTS (READ)
   http.get(`${API_BASE_URL}/products`, () => {
-    // FINAL FIX: Align with the Go backend's actual response structure.
-    // The backend test confirms the response is { "data": [...] }. --> For testing, we align with the component's expectation.
-    return HttpResponse.json(mockProducts);
+    console.log('🎯 MSW: GET /products handler called');
+    console.log('📦 MSW: mockProducts to return:', mockProducts);
+    
+    // FIX: Pastikan struktur response benar-benar sesuai dengan backend Go
+    const response = { 
+      data: mockProducts 
+    };
+    
+    console.log('✅ MSW: Returning response:', response);
+    return HttpResponse.json(response);
   }),
 
   // 2. CREATE PRODUCT (POST)
   http.post(`${API_BASE_URL}/products`, async ({ request }) => {
+    console.log('🎯 MSW: POST /products handler called');
     const newProductData = await request.json() as Omit<Product, 'ID'>;
-    const newProduct: Product = { ID: nextId++, ...newProductData };
+    
+    const newProduct: Product = { 
+      ID: nextId++, 
+      name: newProductData.name,
+      description: newProductData.description || '',
+      price: newProductData.price
+    };
+    
     mockProducts.push(newProduct);
-    return HttpResponse.json(newProduct, { status: 201 });
+    console.log('✅ MSW: Product created, new mockProducts:', mockProducts);
+    
+    return HttpResponse.json({ data: newProduct }, { status: 201 });
   }),
 
   // 3. DELETE PRODUCT (DELETE)
@@ -57,10 +74,17 @@ export const handlers = [
     const productIndex = mockProducts.findIndex(p => p.ID === productId);
     
     if (productIndex === -1) {
-      return HttpResponse.json({ error: 'Product not found' }, { status: 404 });
+        return HttpResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    mockProducts[productIndex] = { ...mockProducts[productIndex], ...updatedData };
-    return HttpResponse.json(mockProducts[productIndex]);
+    // FIX: Update produk dengan data baru
+    mockProducts[productIndex] = { 
+        ...mockProducts[productIndex], 
+        ...updatedData 
+    };
+    
+    console.log('✅ MSW: Product updated, new data:', mockProducts[productIndex]);
+    
+    return HttpResponse.json({ data: mockProducts[productIndex] });
   }),
 ];

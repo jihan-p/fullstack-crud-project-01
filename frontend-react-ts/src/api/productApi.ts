@@ -1,16 +1,21 @@
 // src/api/productApi.ts
 
-import axios from 'axios';
+// HAPUS import axios yang tidak digunakan
 import type { Product } from '../types/Product';
 
-// URL dasar API Go Anda
 const API_BASE_URL = 'http://localhost:8080/api';
 
 // --- SERVICE GET (READ ALL) ---
 export const getAllProducts = async (): Promise<Product[]> => {
     try {
-        const response = await axios.get<{ data: Product[] }>(`${API_BASE_URL}/products`);
-        return response.data.data;
+        const response = await fetch(`${API_BASE_URL}/products`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return data.data || [];
     } catch (error) {
         console.error("Error fetching products:", error);
         throw error;
@@ -20,8 +25,20 @@ export const getAllProducts = async (): Promise<Product[]> => {
 // --- SERVICE POST (CREATE) ---
 export const createProduct = async (productData: Omit<Product, 'ID' | 'CreatedAt' | 'UpdatedAt' | 'DeletedAt'>): Promise<Product> => {
     try {
-        const response = await axios.post<{ data: Product }>(`${API_BASE_URL}/products`, productData);
-        return response.data.data;
+        const response = await fetch(`${API_BASE_URL}/products`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(productData)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return data.data;
     } catch (error) {
         console.error("Error creating product:", error);
         throw error;
@@ -31,8 +48,20 @@ export const createProduct = async (productData: Omit<Product, 'ID' | 'CreatedAt
 // --- SERVICE PUT (UPDATE) ---
 export const updateProduct = async (id: number, productData: Partial<Product>): Promise<Product> => {
     try {
-        const response = await axios.put<{ data: Product }>(`${API_BASE_URL}/products/${id}`, productData);
-        return response.data.data;
+        const response = await fetch(`${API_BASE_URL}/products/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(productData)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return data.data;
     } catch (error) {
         console.error(`Error updating product ID ${id}:`, error);
         throw error;
@@ -42,8 +71,13 @@ export const updateProduct = async (id: number, productData: Partial<Product>): 
 // --- SERVICE DELETE ---
 export const deleteProduct = async (id: number): Promise<void> => {
     try {
-        // Go backend mengembalikan status 204 No Content untuk delete
-        await axios.delete(`${API_BASE_URL}/products/${id}`);
+        const response = await fetch(`${API_BASE_URL}/products/${id}`, {
+            method: 'DELETE'
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
     } catch (error) {
         console.error(`Error deleting product ID ${id}:`, error);
         throw error;

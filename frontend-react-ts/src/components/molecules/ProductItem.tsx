@@ -26,7 +26,8 @@ const ProductItem: React.FC<ProductItemProps> = ({ product, onEdit, onDelete }) 
   };
 
   return (
-    <div className="p-4 border rounded-lg shadow-sm bg-white flex justify-between items-center">
+    <div 
+      className="p-4 border rounded-lg shadow-sm bg-white flex justify-between items-center">
       <div>
         <h3 className="text-lg font-bold">{product.name}</h3>
         <p className="text-sm text-gray-600">{product.description}</p>
