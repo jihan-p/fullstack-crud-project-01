@@ -1,8 +1,8 @@
 // src/pages/ProductListPage.tsx
 
-import React, { useState, useEffect, useCallback } from 'react';
-import type { Product } from '../types/Product'; // <--- Import deleteProduct
-import { getAllProducts, deleteProduct } from '../api/productApi'; // <--- Import ProductItem
+import React, { useState, useEffect } from 'react';
+import type { Product } from '../types/Product';
+import { getAllProducts, deleteProduct } from '../api/productApi';
 import ProductForm from '../components/organisms/ProductForm';
 import ProductItem from '../components/molecules/ProductItem';
 
@@ -10,67 +10,63 @@ const ProductListPage: React.FC = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined); // State untuk mode edit: menyimpan produk yang sedang di-edit
+    const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
+    const [formKey, setFormKey] = useState(0);
 
-    // Fungsi untuk mengambil data produk dari backend
-    const fetchProducts = useCallback(async () => {
+    const fetchProducts = async () => {
         setLoading(true);
         setError(null);
         try {
-            const data = await getAllProducts();
-            setProducts(data);
+            const productsData = await getAllProducts();
+            setProducts(productsData);
         } catch (err) {
+            console.error('❌ Error fetching products:', err);
             setError('Gagal memuat data produk dari API Go.');
+            setProducts([]);
         } finally {
             setLoading(false);
         }
+    };
+
+    useEffect(() => {
+        fetchProducts();
     }, []);
 
-    // --- LOGIC DELETE ---
     const handleDelete = async (id: number) => {
         try {
             await deleteProduct(id);
-            // Muat ulang daftar produk
-            fetchProducts(); 
+            await fetchProducts();
         } catch (error) {
             alert("Gagal menghapus produk.");
         }
     };
 
-    // --- LOGIC EDIT ---
     const handleEditStart = (product: Product) => {
         setEditingProduct(product);
     };
 
-    const handleFormSuccess = () => {
-        setEditingProduct(undefined); // Keluar dari mode edit
-        fetchProducts(); // Muat ulang daftar produk
+    const handleFormSuccess = async () => {
+        setEditingProduct(undefined);
+        setFormKey(prev => prev + 1);
+        await fetchProducts(); // Tunggu sampai selesai
     };
-
-    useEffect(() => {
-        // Panggil fungsi fetch saat komponen dimuat
-        fetchProducts();
-    }, [fetchProducts]);
 
     return (
         <div className="container mx-auto p-6">
             <h1 className="text-3xl font-bold mb-6">Aplikasi CRUD Produk (Go + React)</h1>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-                {/* Kolom Form (CREATE/UPDATE) */}
                 <div className="md:col-span-1">
                     <ProductForm 
                         onSuccess={handleFormSuccess}
-                        initialProduct={editingProduct} // Kirim data produk jika mode edit
-                        key={editingProduct ? editingProduct.ID : 'new'} // Ganti key untuk mereset form
+                        initialProduct={editingProduct}
+                        key={formKey}
                     />
                 </div>
 
-                {/* Kolom Daftar (READ) */}
                 <div className="md:col-span-2">
                     <h2 className="text-2xl font-semibold mb-4">Daftar Produk</h2>
                     
-                    {/* ... (Loading/Error/Empty state) */}
                     {loading && <p className="text-blue-500">Memuat data...</p>}
                     {error && <p className="text-red-500">{error}</p>}
                     
@@ -80,7 +76,6 @@ const ProductListPage: React.FC = () => {
                     {!loading && products.length > 0 && (
                         <div className="space-y-4">
                             {products.map((p) => (
-                                // Ganti div dengan ProductItem
                                 <ProductItem key={p.ID} product={p} onEdit={handleEditStart} onDelete={handleDelete} />
                             ))}
                         </div>
