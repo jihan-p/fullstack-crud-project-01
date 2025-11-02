@@ -3,14 +3,14 @@ package services
 import (
 	"fullstack-crud-project-01/backend-go/models"
 	"errors"
-    // config tidak lagi dibutuhkan di sini, akan dipindahkan ke repository
 )
 
 // --- 1. DEFINISI INTERFACE REPOSITORY ---
-// Ini adalah kontrak (interface) yang harus dipenuhi oleh implementasi DB (Repository)
+// Ini adalah kontrak (interface) yang harus dipenuhi oleh implementasi DB (Repository).
+// Service mendefinisikan dependensi yang dibutuhkannya.
 type ProductRepository interface {
 	Create(product *models.Product) error
-    ReadAll() ([]models.Product, error)
+	ReadAll() ([]models.Product, error)
 	ReadByID(id uint) (*models.Product, error)
 	Update(product *models.Product) error
 	Delete(id uint) error
@@ -20,6 +20,11 @@ type ProductRepository interface {
 // Struct ini akan memegang implementasi repository (real DB atau Mock DB)
 type ProductService struct {
 	Repo ProductRepository
+}
+
+// NewProductService adalah konstruktor untuk ProductService
+func NewProductService(repo ProductRepository) *ProductService {
+	return &ProductService{Repo: repo}
 }
 
 // --- 3. LOGIKA BISNIS (CreateProduct) ---
