@@ -1,79 +1,65 @@
+// src/pages/LoginPage.tsx
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { loginUser } from '../api/authApi'; // Import fungsi yang sudah Anda buat
+import { loginUser } from '../api/authApi';
+import FieldGroup from '../components/molecules/FieldGroup';
+import Button from '../components/atoms/Button';
 
 const LoginPage: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
-    const { login } = useAuth();
+    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsLoading(true);
         setError(null);
-        setLoading(true);
-
         try {
-            // Panggil API Login
             const response = await loginUser(email, password);
-            
-            // Panggil fungsi login dari context untuk memperbarui state aplikasi
-            login(response.token);
-            
-            // ✨ Redirect ke halaman produk menggunakan navigate
+            // FIX: Pass both token and name to the login function
+            login(response.token, response.name);
             navigate('/products');
-
         } catch (err: any) {
-            const errorMessage = err.message || "Kredensial tidak valid atau server error.";
-            setError(errorMessage);
+            // Use the specific error message from the API response if available,
+            // otherwise use a generic message.
+            setError(err.message || 'Terjadi kesalahan. Silakan coba lagi.');
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
     };
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
-            <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg">
-                <h2 className="text-2xl font-bold text-center">Login ke Aplikasi CRUD</h2>
-                
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Email</label>
-                        <input
-                            type="email"
-                            required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Password</label>
-                        <input
-                            type="password"
-                            required
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        />
-                    </div>
-
-                    {error && (
-                        <p className="text-sm font-medium text-red-600 border border-red-200 p-2 rounded-md">
-                            {error}
-                        </p>
-                    )}
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                    >
-                        {loading ? 'Memproses...' : 'Login'}
-                    </button>
+            <div className="p-8 bg-white rounded-lg shadow-md w-full max-w-md">
+                <h2 className="text-2xl font-bold text-center mb-6">Login</h2>
+                <form onSubmit={handleSubmit}>
+                    <FieldGroup
+                        label="Email"
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="you@example.com"
+                        required
+                    />
+                    <FieldGroup
+                        label="Password"
+                        id="password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        required
+                    />
+                    {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+                    <Button type="submit" disabled={isLoading} className="w-full">
+                        {isLoading ? 'Logging in...' : 'Login'}
+                    </Button>
                 </form>
             </div>
         </div>

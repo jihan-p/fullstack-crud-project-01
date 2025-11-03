@@ -24,12 +24,12 @@ export const loginUser = async (email: string, password: string): Promise<LoginR
     });
 
     if (!response.ok) {
-        // Coba parsing error dari body, jika gagal, lempar error umum
+        // Coba parsing error dari body. Jika body kosong atau bukan JSON, lempar error umum.
         try {
             const errorData = await response.json();
-            throw new Error(errorData.error || 'Kredensial tidak valid atau server error.');
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
         } catch {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`An unexpected error occurred: ${response.statusText}`);
         }
     }
 
