@@ -35,7 +35,13 @@ export const getAllProducts = async (token: string): Promise<Product[]> => {
 };
 
 // --- SERVICE POST (CREATE) ---
-export const createProduct = async (productData: Omit<Product, 'ID' | 'CreatedAt' | 'UpdatedAt' | 'DeletedAt'>, token: string): Promise<Product> => {
+type CreateProductData = {
+    name: string;
+    description: string;
+    price: number;
+};
+
+export const createProduct = async (productData: CreateProductData, token: string): Promise<Product> => {
     try {
         const response = await fetch(`${API_BASE_URL}/products`, {
             method: 'POST',
@@ -55,7 +61,7 @@ export const createProduct = async (productData: Omit<Product, 'ID' | 'CreatedAt
 };
 
 // --- SERVICE PUT (UPDATE) ---
-export const updateProduct = async (id: number, productData: Partial<Product>, token: string): Promise<Product> => {
+export const updateProduct = async (id: number, productData: Partial<Omit<Product, 'id'>>, token: string): Promise<Product> => {
     try {
         const response = await fetch(`${API_BASE_URL}/products/${id}`, {
             method: 'PUT',

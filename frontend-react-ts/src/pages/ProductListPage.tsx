@@ -106,7 +106,7 @@ const ProductListPage: React.FC = () => {
                     {!loading && products.length > 0 && (
                         <div className="space-y-4">
                             {products.map((p) => (
-                                <ProductItem key={p.ID} product={p} onEdit={handleEditStart} onDelete={handleDelete} />
+                                <ProductItem key={p.id} product={p} onEdit={handleEditStart} onDelete={handleDelete} />
                             ))}
                         </div>
                     )}

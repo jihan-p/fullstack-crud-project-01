@@ -16,7 +16,7 @@ export const setMockProducts = (products: Product[]) => {
   mockProducts = products;
   // Perbarui nextId agar lebih besar dari ID produk yang dimock, mencegah konflik ID saat POST.
   if (products.length > 0) {
-      const maxId = products.reduce((max, p) => Math.max(max, p.ID), 0);
+      const maxId = products.reduce((max, p) => Math.max(max, p.id), 0);
       nextId = maxId + 1;
   }
 };
@@ -39,10 +39,10 @@ export const handlers = [
   // 2. CREATE PRODUCT (POST)
   http.post(`${API_BASE_URL}/products`, async ({ request }) => {
     console.log('🎯 MSW: POST /products handler called');
-    const newProductData = await request.json() as Omit<Product, 'ID'>;
+    const newProductData = await request.json() as Omit<Product, 'id'>;
     
     const newProduct: Product = { 
-      ID: nextId++, 
+      id: nextId++, 
       name: newProductData.name,
       description: newProductData.description || '',
       price: newProductData.price
@@ -58,7 +58,7 @@ export const handlers = [
   http.delete(`${API_BASE_URL}/products/:id`, ({ params }) => {
     const productId = Number(params.id);
     const initialLength = mockProducts.length;
-    mockProducts = mockProducts.filter(p => p.ID !== productId);
+    mockProducts = mockProducts.filter(p => p.id !== productId);
 
     if (mockProducts.length < initialLength) {
       return new HttpResponse(null, { status: 204 }); // No Content
@@ -70,7 +70,7 @@ export const handlers = [
   http.put(`${API_BASE_URL}/products/:id`, async ({ request, params }) => {
     const productId = Number(params.id);
     const updatedData = await request.json() as Partial<Product>;
-    const productIndex = mockProducts.findIndex(p => p.ID === productId);
+    const productIndex = mockProducts.findIndex(p => p.id === productId);
     
     if (productIndex === -1) {
         return HttpResponse.json({ error: 'Product not found' }, { status: 404 });

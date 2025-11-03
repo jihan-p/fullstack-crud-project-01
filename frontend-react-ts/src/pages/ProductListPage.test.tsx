@@ -7,7 +7,7 @@ import ProductListPage from './ProductListPage';
 
 // Helper untuk membuat produk mock
 const createMockProduct = (id: number, name: string, price: number, description?: string) => ({ 
-    ID: id, 
+    id: id, 
     name, 
     description: description || `Deskripsi untuk ${name}`, 
     price 
@@ -22,7 +22,7 @@ describe('ProductListPage Integration Test (Full CRUD)', () => {
     test('should fetch and display products on initial load', async () => {
         // SETUP: Set mock products
         setMockProducts([{
-            ID: 100,
+            id: 100,
             name: 'Dummy Item',
             price: 100000,
             description: 'Deskripsi Dummy'
