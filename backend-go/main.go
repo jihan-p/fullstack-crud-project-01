@@ -14,6 +14,9 @@ import (
 )
 
 func main() {
+	// Muat variabel lingkungan dari .env SEBELUM hal lain dilakukan
+	config.LoadEnv()
+
 	// 1. KONEKSI DATABASE
 	// Inisialisasi koneksi ke database (mengatur variabel global config.DB)
 	config.ConnectDatabase()

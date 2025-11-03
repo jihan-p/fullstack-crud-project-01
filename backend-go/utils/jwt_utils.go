@@ -16,15 +16,13 @@ type CustomClaims struct {
 	jwt.RegisteredClaims
 }
 
-// Secret key untuk menandatangani token. Ambil dari variabel lingkungan.
-// PASTIKAN variabel ini DISET di lingkungan Anda (misalnya di file .env).
-var jwtSecret = os.Getenv("JWT_SECRET")
-
 // GenerateToken membuat JWT baru untuk pengguna yang berhasil login.
 func GenerateToken(userID uint, email string) (string, error) {
+	jwtSecret := os.Getenv("JWT_SECRET_KEY")
+
 	// Pastikan Secret Key sudah diatur
 	if jwtSecret == "" {
-		return "", fmt.Errorf("JWT_SECRET tidak diatur dalam environment variables")
+		return "", fmt.Errorf("JWT_SECRET_KEY tidak diatur dalam environment variables")
 	}
 
 	// 1. Definisikan waktu kedaluwarsa (misalnya 1 jam dari sekarang)
@@ -56,8 +54,10 @@ func GenerateToken(userID uint, email string) (string, error) {
 // ValidateToken memverifikasi token JWT.
 // Fungsi ini digunakan di Middleware pada Langkah 3.
 func ValidateToken(tokenString string) (*CustomClaims, error) {
+    jwtSecret := os.Getenv("JWT_SECRET_KEY")
+
     if jwtSecret == "" {
-        return nil, fmt.Errorf("JWT_SECRET tidak diatur")
+        return nil, fmt.Errorf("JWT_SECRET_KEY tidak diatur")
     }
 
 	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
