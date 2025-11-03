@@ -1,11 +1,6 @@
 package handlers_test
 
 import (
-	"log"
-	"os"
-	"testing"
-
-	"fullstack-crud-project-01/backend-go/config"
 	"fullstack-crud-project-01/backend-go/handlers"
 	"fullstack-crud-project-01/backend-go/models"
 	"fullstack-crud-project-01/backend-go/repositories"
@@ -18,69 +13,53 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strconv"
+	"testing"
 	"strings"
 )
 
 var testRouter *gin.Engine
 
-// Inisialisasi hanya sekali sebelum semua pengujian
-func TestMain(m *testing.M) {
-	// Ganti ke database test
-	config.TestConnectDatabase() 
-	
+func setupProductRouter() *gin.Engine {
 	// Setup Dependency Injection untuk testing
-	productRepo := &repositories.ProductRepositoryImpl{}
-	productService := &services.ProductService{Repo: productRepo}
+	productRepo := repositories.NewProductRepository(testDB)
+	productService := services.NewProductService(productRepo)
 	productHandler := handlers.NewProductHandler(productService)
 
 	// Setup Router
 	r := gin.Default()
-	api := r.Group("/api")
+	api := r.Group("/api/v1") // Sesuaikan dengan main.go
 	{
-		api.POST("/products", productHandler.CreateProductHandler)
-		api.GET("/products", productHandler.ReadAllProductsHandler)
-		api.GET("/products/:id", productHandler.ReadProductByIDHandler)
-		api.PUT("/products/:id", productHandler.UpdateProductHandler)
-		api.DELETE("/products/:id", productHandler.DeleteProductHandler)
+		// Endpoint ini dilindungi, jadi kita perlu token. Untuk simplisitas, kita nonaktifkan middleware di test.
+		// Jika ingin test middleware, perlu setup yang lebih kompleks.
+		products := api.Group("/products")
+		// products.Use(middleware.AuthMiddleware()) // Nonaktifkan middleware untuk unit test handler
+		{
+			products.POST("", productHandler.CreateProductHandler)
+			products.GET("", productHandler.ReadAllProductsHandler)
+			products.GET("/:id", productHandler.ReadProductByIDHandler)
+			products.PUT("/:id", productHandler.UpdateProductHandler)
+			products.DELETE("/:id", productHandler.DeleteProductHandler)
+		}
 	}
-	testRouter = r
-
-	// Jalankan semua test
-	exitVal := m.Run()
-
-	// Pembersihan setelah semua test selesai (opsional)
-	// config.CloseTestDatabase()
-
-	os.Exit(exitVal)
-}
-
-// ClearTable mengosongkan tabel produk sebelum setiap test
-func ClearTable() {
-	err := config.DB.Migrator().DropTable(&models.Product{})
-	if err != nil {
-		log.Fatal("Gagal drop table:", err)
-	}
-	err = config.DB.AutoMigrate(&models.Product{})
-	if err != nil {
-		log.Fatal("Gagal migrate table:", err)
-	}
+	return r
 }
 
 // Helper untuk membuat request
 func executeRequest(req *http.Request) *httptest.ResponseRecorder {
-	rr := httptest.NewRecorder()
-	testRouter.ServeHTTP(rr, req)
-	return rr
+	w := httptest.NewRecorder()
+	testRouter.ServeHTTP(w, req) // Gunakan router global yang di-setup
+	return w
 }
 
 // Test jalur lengkap CRUD (seringkali lebih efisien untuk menguji C-R-U-D dalam satu fungsi)
 func TestProductCRUD(t *testing.T) {
-	ClearTable() // Kosongkan tabel sebelum test
+	testDB.Exec("DELETE FROM products") // Kosongkan tabel sebelum test
+	testRouter = setupProductRouter() // Inisialisasi router global
 
 	// --- 1. TEST CREATE (POST /api/products) ---
 	t.Run("CreateProduct", func(t *testing.T) {
 		payload := []byte(`{"name": "Buku Go", "description": "Belajar GoLang dari Dasar", "price": 150000}`)
-		req, _ := http.NewRequest("POST", "/api/products", bytes.NewBuffer(payload))
+		req, _ := http.NewRequest("POST", "/api/v1/products", bytes.NewBuffer(payload))
 		req.Header.Set("Content-Type", "application/json")
 		
 		response := executeRequest(req)
@@ -97,7 +76,7 @@ func TestProductCRUD(t *testing.T) {
 
 	// --- 2. TEST READ ALL (GET /api/products) ---
 	t.Run("ReadAllProducts", func(t *testing.T) {
-		req, _ := http.NewRequest("GET", "/api/products", nil)
+		req, _ := http.NewRequest("GET", "/api/v1/products", nil)
 		response := executeRequest(req)
 
 		if response.Code != http.StatusOK {
@@ -118,7 +97,7 @@ func TestProductCRUD(t *testing.T) {
 			
 			// --- 3. TEST READ BY ID (GET /api/products/:id) ---
 			t.Run("ReadProductByID", func(t *testing.T) {
-				req, _ := http.NewRequest("GET", "/api/products/"+strconv.Itoa(int(productID)), nil)
+				req, _ := http.NewRequest("GET", "/api/v1/products/"+strconv.Itoa(int(productID)), nil)
 				response := executeRequest(req)
 
 				if response.Code != http.StatusOK {
@@ -129,7 +108,7 @@ func TestProductCRUD(t *testing.T) {
 			// --- 4. TEST UPDATE (PUT /api/products/:id) ---
 			t.Run("UpdateProduct", func(t *testing.T) {
 				updatePayload := []byte(`{"name": "Buku Go TERBARU", "description": "Edisi Revisi", "price": 175000}`)
-				req, _ := http.NewRequest("PUT", "/api/products/"+strconv.Itoa(int(productID)), bytes.NewBuffer(updatePayload))
+				req, _ := http.NewRequest("PUT", "/api/v1/products/"+strconv.Itoa(int(productID)), bytes.NewBuffer(updatePayload))
 				req.Header.Set("Content-Type", "application/json")
 				response := executeRequest(req)
 
@@ -143,7 +122,7 @@ func TestProductCRUD(t *testing.T) {
 
 			// --- 5. TEST DELETE (DELETE /api/products/:id) ---
 			t.Run("DeleteProduct", func(t *testing.T) {
-				req, _ := http.NewRequest("DELETE", "/api/products/"+strconv.Itoa(int(productID)), nil)
+				req, _ := http.NewRequest("DELETE", "/api/v1/products/"+strconv.Itoa(int(productID)), nil)
 				response := executeRequest(req)
 
 				if response.Code != http.StatusNoContent {
@@ -151,7 +130,7 @@ func TestProductCRUD(t *testing.T) {
 				}
 				
 				// Verifikasi produk benar-benar hilang (optional tapi disarankan)
-				req, _ = http.NewRequest("GET", "/api/products/"+strconv.Itoa(int(productID)), nil)
+				req, _ = http.NewRequest("GET", "/api/v1/products/"+strconv.Itoa(int(productID)), nil)
 				response = executeRequest(req)
 				
 				if response.Code != http.StatusNotFound {

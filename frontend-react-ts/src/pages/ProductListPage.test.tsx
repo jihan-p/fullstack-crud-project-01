@@ -1,13 +1,28 @@
 // src/pages/ProductListPage.test.tsx
 
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, renderHook, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { BrowserRouter as Router } from 'react-router-dom';
 import { resetMockProducts, setMockProducts } from '../mocks/handlers';
+import { AuthProvider, useAuth } from '../../context/AuthContext';
 import ProductListPage from './ProductListPage';
+
+// Helper untuk merender komponen dengan AuthProvider dan Router
+const renderWithAuth = (component: React.ReactElement) => {
+    // Setup hook untuk login sebelum render
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <Router><AuthProvider>{children}</AuthProvider></Router>
+    );
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    act(() => {
+        result.current.login('mock-test-token', 'Test User');
+    });
+    return render(component, { wrapper });
+};
 
 // Helper untuk membuat produk mock
 const createMockProduct = (id: number, name: string, price: number, description?: string) => ({ 
-    ID: id, 
+    id: id, 
     name, 
     description: description || `Deskripsi untuk ${name}`, 
     price 
@@ -22,13 +37,13 @@ describe('ProductListPage Integration Test (Full CRUD)', () => {
     test('should fetch and display products on initial load', async () => {
         // SETUP: Set mock products
         setMockProducts([{
-            ID: 100,
+            id: 100,
             name: 'Dummy Item',
             price: 100000,
             description: 'Deskripsi Dummy'
         }]);
 
-        render(<ProductListPage />);
+        renderWithAuth(<ProductListPage />);
         
         // Verifikasi loading state muncul
         expect(screen.getByText(/memuat data.../i)).toBeInTheDocument();
@@ -42,7 +57,7 @@ describe('ProductListPage Integration Test (Full CRUD)', () => {
     // 2. Test CREATE (Membuat data)
     test('should create a new product and update the list', async () => {
         const user = userEvent.setup();
-        render(<ProductListPage />);
+        renderWithAuth(<ProductListPage />);
         
         // Tunggu hingga list kosong muncul
         expect(await screen.findByText(/belum ada produk\. silakan tambahkan satu!/i)).toBeInTheDocument();
@@ -71,7 +86,7 @@ describe('ProductListPage Integration Test (Full CRUD)', () => {
             
             // SETUP: Set mock products
             setMockProducts([mockInitialProduct]);
-            render(<ProductListPage />);
+            renderWithAuth(<ProductListPage />);
             
             // Tunggu hingga item muncul - gunakan findBy untuk menunggu async
             await screen.findByText(/mock item pre-seeded/i, { selector: 'h3' });
@@ -111,7 +126,7 @@ describe('ProductListPage Integration Test (Full CRUD)', () => {
 
             // SETUP: Set mock products
             setMockProducts([mockInitialProduct]);
-            render(<ProductListPage />);
+            renderWithAuth(<ProductListPage />);
 
             // Tunggu hingga item muncul
             await screen.findByText(/mock item pre-seeded/i, { selector: 'h3' });
@@ -134,7 +149,7 @@ describe('ProductListPage Integration Test (Full CRUD)', () => {
             
             // SETUP: Set mock products
             setMockProducts([mockInitialProduct]);
-            render(<ProductListPage />);
+            renderWithAuth(<ProductListPage />);
             
             // Tunggu hingga item muncul
             await screen.findByText(/mock item pre-seeded/i, { selector: 'h3' });
@@ -160,7 +175,7 @@ describe('ProductListPage Integration Test (Full CRUD)', () => {
     // 6. Test FORM VALIDATION
     test('should disable submit button when form is invalid', async () => {
         const user = userEvent.setup();
-        render(<ProductListPage />);
+        renderWithAuth(<ProductListPage />);
         
         // Tunggu hingga form loaded
         await screen.findByText(/tambah produk baru/i);
@@ -195,7 +210,7 @@ describe('ProductListPage Integration Test (Full CRUD)', () => {
         ];
         setMockProducts(multipleProducts);
         
-        render(<ProductListPage />);
+        renderWithAuth(<ProductListPage />);
         
         // Verifikasi semua produk muncul - gunakan selector yang spesifik
         expect(await screen.findByText(/product a/i, { selector: 'h3' })).toBeInTheDocument();
@@ -227,7 +242,7 @@ describe('ProductListPage Integration Test (Full CRUD)', () => {
 
     // 8. Test EMPTY state
     test('should display empty state when no products', async () => {
-        render(<ProductListPage />);
+        renderWithAuth(<ProductListPage />);
         
         // Tunggu hingga loading selesai
         await waitFor(() => {

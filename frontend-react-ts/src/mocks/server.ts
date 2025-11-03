@@ -2,5 +2,5 @@
 import { setupServer } from 'msw/node';
 import { handlers } from './handlers';
 
-// Configure MSW server with the created handlers
+// Konfigurasi server mocking untuk lingkungan Node.js (digunakan oleh Jest).
 export const server = setupServer(...handlers);

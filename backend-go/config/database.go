@@ -5,22 +5,12 @@ import (
     "log"
     "os"
     "fullstack-crud-project-01/backend-go/models"
-    "github.com/joho/godotenv"
     "gorm.io/driver/mysql"
     "gorm.io/gorm"
 )
 
 // DB adalah variabel global untuk koneksi database
 var DB *gorm.DB
-
-// loadEnv memuat variabel lingkungan dari file .env
-func loadEnv() {
-    // Muat file .env di direktori saat ini
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error memuat file .env: %v", err)
-	}
-}
 
 // buildDSN membuat Data Source Name (DSN) dari variabel lingkungan
 func buildDSN(dbNameEnvKey string) string {
@@ -44,8 +34,7 @@ func buildDSN(dbNameEnvKey string) string {
 
 // ConnectDatabase menginisialisasi koneksi ke MySQL
 func ConnectDatabase() {
-    loadEnv() // <-- Muat .env
-    dsn := buildDSN("DB_NAME") // <-- Gunakan nama DB development
+    dsn := buildDSN("DB_NAME")
     
 	database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
@@ -65,19 +54,17 @@ func ConnectDatabase() {
     fmt.Println("Migrasi tabel 'products' Berhasil.")
 }
 
-// TestConnectDatabase menginisialisasi koneksi ke MySQL untuk pengujian
-func TestConnectDatabase() {
-    loadEnv() // <-- Muat .env
-    dsn := buildDSN("DB_NAME") // <-- Gunakan nama DB development
+// ConnectTestDatabase menginisialisasi koneksi ke database TEST dan mengembalikannya.
+func ConnectTestDatabase() (*gorm.DB, error) {
+    dsn := buildDSN("DB_NAME_TEST") // Gunakan DB_NAME_TEST untuk pengujian
     
 	database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	if err != nil {
-		log.Fatal("Koneksi ke database TEST GAGAL! \n", err)
+		return nil, fmt.Errorf("koneksi ke database TEST GAGAL: %w", err)
 	}
 
-	DB = database
 	fmt.Println("Koneksi database TEST Berhasil!")
-
-	// Tidak perlu AutoMigrate di sini, akan dilakukan di setup handler test
+	// Mengembalikan instance DB, bukan menyimpannya di variabel global
+	return database, nil
 }

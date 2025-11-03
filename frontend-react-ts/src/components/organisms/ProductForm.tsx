@@ -5,6 +5,7 @@ import FieldGroup from '../molecules/FieldGroup';
 import Button from '../atoms/Button';
 import { createProduct, updateProduct } from '../../api/productApi';
 import type { Product } from '../../types/Product';
+import { useAuth } from '../../../context/AuthContext';
 
 interface ProductFormProps {
     onSuccess: () => void; // Callback setelah submit sukses
@@ -17,6 +18,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, initialProduct }) 
     const [price, setPrice] = useState<number | ''>(initialProduct?.price || '');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { token } = useAuth(); // Ambil token dari context
 
     const isEditMode = !!initialProduct;
 
@@ -47,10 +49,15 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, initialProduct }) 
         };
 
         try {
+            if (!token) {
+                setError("Sesi tidak valid. Silakan login kembali.");
+                return;
+            }
+
             if (isEditMode && initialProduct) {
-                await updateProduct(initialProduct.ID, productData);
+                await updateProduct(initialProduct.id, productData, token);
             } else {
-                await createProduct(productData);
+                await createProduct(productData, token);
             }
             
             onSuccess(); // Panggil callback, form akan di-reset oleh parent component via 'key'
@@ -65,7 +72,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSuccess, initialProduct }) 
     return (
         <form onSubmit={handleSubmit} className="p-4 border rounded-lg shadow-md bg-white sticky top-6">
             <h3 className="text-xl font-bold mb-4">
-                {isEditMode ? `Edit Produk (ID: ${initialProduct.ID})` : 'Tambah Produk Baru'}
+                {isEditMode ? `Edit Produk (ID: ${initialProduct.id})` : 'Tambah Produk Baru'}
             </h3>
             
             <FieldGroup

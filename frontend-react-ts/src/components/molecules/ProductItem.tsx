@@ -21,7 +21,7 @@ const ProductItem: React.FC<ProductItemProps> = ({ product, onEdit, onDelete }) 
   const handleDeleteClick = () => {
     // window.confirm di-mock di test, sehingga logika ini aman
     if (window.confirm(`Apakah Anda yakin ingin menghapus ${product.name}?`)) {
-      onDelete(product.ID);
+      onDelete(product.id);
     }
   };
 

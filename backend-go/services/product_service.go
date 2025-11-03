@@ -2,58 +2,59 @@ package services
 
 import (
 	"fullstack-crud-project-01/backend-go/models"
-	"errors"
-    // config tidak lagi dibutuhkan di sini, akan dipindahkan ke repository
 )
 
-// --- 1. DEFINISI INTERFACE REPOSITORY ---
-// Ini adalah kontrak (interface) yang harus dipenuhi oleh implementasi DB (Repository)
+// ProductRepository mendefinisikan operasi yang diperlukan untuk produk.
+// Ini adalah "port" dalam arsitektur Hexagonal.
 type ProductRepository interface {
 	Create(product *models.Product) error
-    ReadAll() ([]models.Product, error)
+	ReadAll() ([]models.Product, error)
 	ReadByID(id uint) (*models.Product, error)
 	Update(product *models.Product) error
 	Delete(id uint) error
 }
 
-// --- 2. STRUCT SERVICE ---
-// Struct ini akan memegang implementasi repository (real DB atau Mock DB)
+// ProductService menyediakan logika bisnis untuk produk.
 type ProductService struct {
 	Repo ProductRepository
 }
 
-// --- 3. LOGIKA BISNIS (CreateProduct) ---
-// Metode ini sekarang memanggil method Create dari interface Repo
+// NewProductService adalah konstruktor untuk ProductService.
+func NewProductService(repo ProductRepository) *ProductService {
+	return &ProductService{Repo: repo}
+}
+
+// CreateProduct memvalidasi dan membuat produk baru.
 func (s *ProductService) CreateProduct(product *models.Product) error {
-    // Implementasi validasi Sederhana: Nama tidak boleh kosong
-    if product.Name == "" {
-        return models.ErrProductNameRequired
-    }
-    
-    // Panggil Repository (yang sebenarnya bisa berupa DB atau Mock)
+	// Contoh validasi sederhana
+	if product.Name == "" {
+		return models.ErrProductNameRequired
+	}
+	if product.Price <= 0 {
+		return models.ErrProductPriceInvalid
+	}
+
+	// Panggil repository untuk menyimpan ke database
 	return s.Repo.Create(product)
 }
 
-// ReadAllProducts memanggil repository untuk mendapatkan semua produk
+// ReadAllProducts mengambil semua produk.
 func (s *ProductService) ReadAllProducts() ([]models.Product, error) {
 	return s.Repo.ReadAll()
 }
 
-// ReadProductByID memanggil repository untuk mendapatkan produk spesifik
+// ReadProductByID mengambil produk berdasarkan ID.
 func (s *ProductService) ReadProductByID(id uint) (*models.Product, error) {
 	return s.Repo.ReadByID(id)
 }
 
-// UpdateProduct (Asumsi validasi tambahan di sini jika diperlukan)
+// UpdateProduct memvalidasi dan memperbarui produk.
 func (s *ProductService) UpdateProduct(product *models.Product) error {
-	// Contoh validasi ringan: ID harus ada untuk update
-	if product.ID == 0 {
-		return errors.New("ID produk wajib diisi untuk update") 
-	}
+	// Anda bisa menambahkan validasi di sini jika perlu
 	return s.Repo.Update(product)
 }
 
-// DeleteProduct memanggil repository untuk menghapus produk
+// DeleteProduct menghapus produk berdasarkan ID.
 func (s *ProductService) DeleteProduct(id uint) error {
 	return s.Repo.Delete(id)
 }

@@ -10,6 +10,7 @@ interface FieldGroupProps {
   value: string | number;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
+  required?: boolean;
 }
 
 const FieldGroup: React.FC<FieldGroupProps> = ({ 
@@ -18,7 +19,8 @@ const FieldGroup: React.FC<FieldGroupProps> = ({
   type = 'text', 
   value, 
   onChange, 
-  placeholder 
+  placeholder,
+  required = false
 }) => {
   return (
     <div className="mb-4">
@@ -31,6 +33,7 @@ const FieldGroup: React.FC<FieldGroupProps> = ({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
+        required={required}
       />
     </div>
   );
