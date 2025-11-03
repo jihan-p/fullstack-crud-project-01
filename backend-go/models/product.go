@@ -2,15 +2,21 @@ package models
 
 import (
 	"errors"
-	"gorm.io/gorm"
+	"time"
 )
 
-var ErrProductNameRequired = errors.New("nama produk wajib diisi")
-
-// Product struct merepresentasikan data di tabel 'products'
+// Product merepresentasikan model data untuk sebuah produk.
 type Product struct {
-	gorm.Model           // Menyediakan field ID, CreatedAt, UpdatedAt, DeletedAt
-	Name        string   `gorm:"type:varchar(255);not null" json:"name"`
-	Description string   `gorm:"type:text" json:"description"`
-	Price       int      `gorm:"not null" json:"price"`
+	ID          uint      `gorm:"primaryKey" json:"id"`
+	Name        string    `gorm:"not null" json:"name"`
+	Description string    `json:"description"`
+	Price       int       `gorm:"not null" json:"price"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
+
+// Error kustom untuk validasi produk
+var (
+	ErrProductNameRequired = errors.New("nama produk tidak boleh kosong")
+	ErrProductPriceInvalid = errors.New("harga produk harus lebih besar dari nol")
+)

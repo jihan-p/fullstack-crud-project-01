@@ -54,18 +54,17 @@ func ConnectDatabase() {
     fmt.Println("Migrasi tabel 'products' Berhasil.")
 }
 
-// TestConnectDatabase menginisialisasi koneksi ke MySQL untuk pengujian
-func TestConnectDatabase() {
-    dsn := buildDSN("DB_NAME")
+// ConnectTestDatabase menginisialisasi koneksi ke database TEST dan mengembalikannya.
+func ConnectTestDatabase() (*gorm.DB, error) {
+    dsn := buildDSN("DB_NAME_TEST") // Gunakan DB_NAME_TEST untuk pengujian
     
 	database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	if err != nil {
-		log.Fatal("Koneksi ke database TEST GAGAL! \n", err)
+		return nil, fmt.Errorf("koneksi ke database TEST GAGAL: %w", err)
 	}
 
-	DB = database
 	fmt.Println("Koneksi database TEST Berhasil!")
-
-	// Tidak perlu AutoMigrate di sini, akan dilakukan di setup handler test
+	// Mengembalikan instance DB, bukan menyimpannya di variabel global
+	return database, nil
 }
