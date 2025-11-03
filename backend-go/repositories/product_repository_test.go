@@ -1,45 +1,13 @@
 package repositories_test
 
 import (
-	"fmt"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"gorm.io/gorm"
 
-	"fullstack-crud-project-01/backend-go/config"     
 	"fullstack-crud-project-01/backend-go/models"    
 	"fullstack-crud-project-01/backend-go/repositories" 
 )
-
-var testDB *gorm.DB
-
-func TestMain(m *testing.M) {
-	// --- SETUP GLOBAL ---
-	
-	// Muat variabel lingkungan dari .env SEBELUM koneksi DB
-	config.LoadEnv()
-
-	// ASUMSI: config.ConnectTestDatabase() adalah fungsi khusus yang menggunakan DB_NAME_TEST
-	db, err := config.ConnectTestDatabase()
-	if err != nil {
-		fmt.Printf("Gagal menyambungkan ke DB Test: %v\n", err)
-		os.Exit(1)
-	}
-	testDB = db
-
-	// Pastikan model sudah dimigrasi ke DB Test
-	testDB.AutoMigrate(&models.Product{}, &models.User{})
-
-	// --- Jalankan Semua Tes ---
-	code := m.Run()
-
-	// --- TEARDOWN GLOBAL ---
-	// Opsional: Hapus DB Test setelah semua tes selesai
-	
-	os.Exit(code)
-}
 
 // setupTest membersihkan tabel sebelum setiap tes
 func setupTest(t *testing.T) {

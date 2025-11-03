@@ -89,6 +89,6 @@ func TestAuthMiddleware(t *testing.T) {
 
 		// Verifikasi bahwa handler menerima data pengguna dari context
 		assert.Contains(t, w.Body.String(), "Welcome!")
-		assert.Contains(t, w.Body.String(), email)
+		assert.Contains(t, w.Body.String(), `"claims":99`) // Check for the user ID
 	})
 }

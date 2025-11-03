@@ -1,0 +1,13 @@
+package dto
+
+// ForgotPasswordRequest adalah DTO untuk permintaan lupa password.
+type ForgotPasswordRequest struct {
+	Email string `json:"email" binding:"required,email"`
+}
+
+// ResetPasswordRequest adalah DTO untuk permintaan reset password.
+type ResetPasswordRequest struct {
+	Token           string `json:"token" binding:"required"`
+	Password        string `json:"password" binding:"required,min=8"`
+	PasswordConfirm string `json:"password_confirm" binding:"required,eqfield=Password"`
+}

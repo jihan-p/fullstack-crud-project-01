@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"fullstack-crud-project-01/backend-go/models"
-	"fullstack-crud-project-01/backend-go/services" // Import paket services
+	"fullstack-crud-project-01/backend-go/services"
 	"gorm.io/gorm"
 )
 
@@ -12,7 +12,7 @@ type ProductRepositoryImpl struct{
 }
 
 // NewProductRepository adalah konstruktor untuk ProductRepositoryImpl
-func NewProductRepository(db *gorm.DB) services.ProductRepository {
+func NewProductRepository(db *gorm.DB) services.ProductRepository { // Returns the interface from the services package
 	return &ProductRepositoryImpl{DB: db}
 }
 

@@ -9,7 +9,7 @@ import (
 )
 
 // UserKey adalah kunci yang digunakan untuk menyimpan data pengguna di Gin Context
-const UserKey = "current_user"
+const UserKey = "user_id"
 
 // AuthMiddleware memverifikasi JWT dari header Authorization.
 func AuthMiddleware() gin.HandlerFunc {
@@ -43,7 +43,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		// 3. Suntikkan Data Pengguna ke Konteks
 		// Data ini (UserID dan Email) sekarang bisa diakses oleh handler produk
-		c.Set(UserKey, claims) 
+		c.Set(UserKey, claims.UserID) 
 		
 		// Lanjutkan ke handler berikutnya (misalnya, CreateProductHandler)
 		c.Next()

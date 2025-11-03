@@ -41,13 +41,16 @@ func main() {
 
 	// Inisialisasi Repository dengan koneksi DB
 	productRepo := repositories.NewProductRepository(db)
+	userRepo := repositories.NewUserRepository(db)
 	
 	// Inisialisasi Service dengan Repository
 	productService := services.NewProductService(productRepo)
+	userService := services.NewUserService(userRepo)
 
 	// Inisialisasi Handler dengan Service
 	productHandler := handlers.NewProductHandler(productService)
-	authHandler := handlers.AuthHandler{DB: db} 
+	userHandler := handlers.NewUserHandler(userService) // Inisialisasi UserHandler
+	authHandler := handlers.NewAuthHandler(userRepo)
 	
 	// Membuat grup route utama /api/v1
 	api := r.Group("/api/v1")
@@ -62,6 +65,12 @@ func main() {
 		
 		// Endpoint Login
 		auth.POST("/login", authHandler.LoginUser)
+
+		// Endpoint Lupa Password
+		auth.POST("/forgot-password", authHandler.ForgotPassword)
+
+		// Endpoint Reset Password
+		auth.POST("/reset-password", authHandler.ResetPassword)
 	}
 	
 	// ===================================
@@ -77,6 +86,17 @@ func main() {
 		products.DELETE("/:id", productHandler.DeleteProductHandler)
 	}
 
+	// ===================================
+	// C. ROUTE TERLINDUNGI (CRUD USER)
+	// ===================================
+	users := api.Group("/users")
+	users.Use(middleware.AuthMiddleware()) // Harus login untuk mengakses
+	{
+		// Menggunakan ID yang diambil dari JWT untuk otorisasi
+		users.GET("/me", userHandler.ReadUserHandler)
+		users.PUT("/me", userHandler.UpdateUserHandler)
+		users.DELETE("/me", userHandler.DeleteUserHandler)
+	}
 
 	log.Println("Server berjalan di http://localhost:8080")
 	r.Run(":8080")

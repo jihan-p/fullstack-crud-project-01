@@ -7,19 +7,16 @@ import (
 )
 
 // User merepresentasikan model pengguna di database
+// User merepresentasikan model data untuk seorang pengguna.
 type User struct {
-    ID              uint       `gorm:"primaryKey" json:"id"`
-    Email           string     `gorm:"unique;not null" json:"email"`
-    PasswordHash    string     `gorm:"not null" json:"-"` // Hash password disimpan, tidak diekspos di JSON
-    Name            string     `json:"name"`
-    IsActive        bool       `gorm:"default:false" json:"isActive"` // Status aktivasi akun (via email)
-    ActivationToken *string    `json:"-"` // Token acak untuk aktivasi email
-    ResetToken      *string    `json:"-"` // Token acak untuk lupa password
-    ResetTokenExpiry *time.Time `json:"-"` // Waktu kedaluwarsa token reset
-    CreatedAt       time.Time
-    UpdatedAt       time.Time
+	ID              uint      `gorm:"primaryKey"`
+	Name            string    `gorm:"not null"`
+	Email           string    `gorm:"unique;not null"`
+	PasswordHash    string    `gorm:"not null"`
+	IsActive        bool      `gorm:"default:false"`
+	ActivationToken *string   // Pointer agar bisa NULL
+	ResetToken      *string   // Token untuk reset password
+	ResetTokenExpiry *time.Time // Waktu kedaluwarsa token reset
+	CreatedAt       time.Time `gorm:"autoCreateTime"`
+	UpdatedAt       time.Time `gorm:"autoUpdateTime"`
 }
-
-// Catatan:
-// 1. Tag `json:"-"` menyembunyikan field sensitif (PasswordHash, token) dari respons API JSON.
-// 2. Tipe *string dan *time.Time (pointer) membuat kolom-kolom token menjadi NULLABLE di database.
