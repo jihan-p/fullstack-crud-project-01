@@ -3,7 +3,7 @@
 import { fetchWithAuth } from './apiUtils';
 import type { User } from '../types/User';
 
-const BASE_URL = '/users/me'; // Menggunakan endpoint /me
+const BASE_URL = '/users/me'; // Endpoint for the current user
 
 export const fetchCurrentUser = async (token: string): Promise<{ data: User }> => {
     return fetchWithAuth(BASE_URL, { method: 'GET' }, token);

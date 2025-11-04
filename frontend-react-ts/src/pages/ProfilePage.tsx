@@ -46,7 +46,7 @@ const ProfilePage: React.FC = () => {
             await updateCurrentUser({ Name: name, Email: email }, token);
             setSuccessMessage('Profile updated successfully!');
         } catch (err) {
-            setError('Failed to update profile.');
+            setError((err as Error).message || 'Failed to update profile.');
         } finally {
             setIsSubmitting(false);
         }

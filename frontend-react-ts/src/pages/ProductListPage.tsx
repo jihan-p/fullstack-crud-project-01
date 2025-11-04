@@ -79,10 +79,6 @@ const ProductListPage: React.FC = () => {
         <div className="container mx-auto p-6">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold">Aplikasi CRUD Produk (Go + React)</h1>
-                {/* ✨ IMPROVEMENT: Gunakan handler dengan konfirmasi */}
-                <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition-colors">
-                    Logout
-                </button>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
