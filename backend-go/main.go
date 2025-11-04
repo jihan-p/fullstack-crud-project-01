@@ -89,13 +89,21 @@ func main() {
 	// ===================================
 	// C. ROUTE TERLINDUNGI (CRUD USER)
 	// ===================================
-	users := api.Group("/users")
-	users.Use(middleware.AuthMiddleware()) // Harus login untuk mengakses
+	userProfile := api.Group("/users/me")
+	userProfile.Use(middleware.AuthMiddleware()) // Any logged-in user can access their own profile
 	{
-		// Menggunakan ID yang diambil dari JWT untuk otorisasi
-		users.GET("/me", userHandler.ReadUserHandler)
-		users.PUT("/me", userHandler.UpdateUserHandler)
-		users.DELETE("/me", userHandler.DeleteUserHandler)
+		userProfile.GET("", userHandler.ReadUserHandler)
+		userProfile.PUT("", userHandler.UpdateUserHandler)
+		userProfile.DELETE("", userHandler.DeleteUserHandler)
+	}
+
+	admin := api.Group("/admin")
+	// Terapkan AuthMiddleware untuk otentikasi, lalu RoleCheckMiddleware untuk otorisasi
+	admin.Use(middleware.AuthMiddleware(), middleware.RoleCheckMiddleware("admin")) 
+	{
+		admin.GET("/users", userHandler.ReadAllUsersHandler)         // GET /api/v1/admin/users
+		admin.PUT("/users/:id", userHandler.UpdateUserByIDHandler)   // PUT /api/v1/admin/users/:id
+		admin.DELETE("/users/:id", userHandler.DeleteUserByIDHandler) // DELETE /api/v1/admin/users/:id
 	}
 
 	log.Println("Server berjalan di http://localhost:8080")

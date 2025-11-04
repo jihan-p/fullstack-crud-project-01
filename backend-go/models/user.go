@@ -13,6 +13,7 @@ type User struct {
 	Name            string    `gorm:"not null"`
 	Email           string    `gorm:"unique;not null"`
 	PasswordHash    string    `gorm:"not null"`
+	Role            string    `gorm:"type:varchar(20);not null;default:'user'"` // <-- ADDED THIS
 	IsActive        bool      `gorm:"default:false"`
 	ActivationToken *string   // Pointer agar bisa NULL
 	ResetToken      *string   // Token untuk reset password

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"strconv"
 	"net/http"
 
 	"errors"
@@ -79,7 +80,41 @@ func (h *UserHandler) UpdateUserHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "User updated successfully"})
 }
 
-// DeleteUserHandler handles DELETE /users/me
+// UpdateUserByIDHandler handles PUT /users/:id (for admins)
+func (h *UserHandler) UpdateUserByIDHandler(c *gin.Context) {
+	idStr := c.Param("id")
+	userID, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	var req models.User
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input", "details": err.Error()})
+		return
+	}
+
+	// Ensure the ID from the URL is used, not from the request body
+	req.ID = uint(userID)
+
+	err = h.UserService.UpdateUser(&req)
+	if err != nil {
+		if errors.Is(err, services.ErrEmailExists) {
+			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+			return
+		}
+		if errors.Is(err, services.ErrUserNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user", "details": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "User updated successfully"})
+}
+
+// DeleteUserHandler handles DELETE /users/me (deleting own account)
 func (h *UserHandler) DeleteUserHandler(c *gin.Context) {
 	userID, exists := c.Get(middleware.UserKey)
 	if !exists {
@@ -94,4 +129,52 @@ func (h *UserHandler) DeleteUserHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
+}
+
+// DeleteUserByIDHandler handles DELETE /users/:id (for admins)
+func (h *UserHandler) DeleteUserByIDHandler(c *gin.Context) {
+	idStr := c.Param("id")
+	userID, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	err = h.UserService.DeleteUser(uint(userID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
+}
+
+// ReadAllUsersHandler handles GET /users for listing all users with pagination and search.
+func (h *UserHandler) ReadAllUsersHandler(c *gin.Context) {
+	// 1. Parse query parameters
+	pageStr := c.DefaultQuery("page", "1")
+	limitStr := c.DefaultQuery("limit", "10")
+	search := c.DefaultQuery("search", "")
+
+	page, errPage := strconv.Atoi(pageStr)
+	limit, errLimit := strconv.Atoi(limitStr)
+	if errPage != nil || errLimit != nil || page < 1 || limit < 1 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid pagination parameters"})
+		return
+	}
+
+	offset := (page - 1) * limit
+
+	// 2. Call the service to get users
+	users, total, err := h.UserService.FindAll(offset, limit, search)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve users"})
+		return
+	}
+
+	// 3. Respond with data and pagination metadata
+	c.JSON(http.StatusOK, gin.H{
+		"data": users,
+		"meta": gin.H{"total": total, "page": page, "limit": limit},
+	})
 }

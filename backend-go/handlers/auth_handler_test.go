@@ -43,6 +43,14 @@ func (m *MockUserRepository) FindByResetToken(token string) (*models.User, error
 func (m *MockUserRepository) Update(user *models.User) error { return nil }
 func (m *MockUserRepository) Delete(id uint) error { return nil }
 
+func (m *MockUserRepository) FindAll(offset int, limit int, search string) ([]models.User, int64, error) {
+	args := m.Called(offset, limit, search)
+	if users, ok := args.Get(0).([]models.User); ok {
+		return users, args.Get(1).(int64), args.Error(2)
+	}
+	// Return empty slice and 0 if the mock is not configured for a specific call
+	return []models.User{}, 0, args.Error(2)
+}
 
 func setupAuthRouter(mockRepo services.UserRepository) *gin.Engine {
 	// 1. Inisialisasi Handler dengan Mock Repo

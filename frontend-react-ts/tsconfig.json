@@ -28,7 +28,7 @@
     "types": ["jest", "vite/client", "node"]
   },
   "include": [
-    "src", "context", "pages"
+    "src", "src/context", "pages"
   ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

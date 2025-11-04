@@ -46,12 +46,12 @@ func ConnectDatabase() {
     DB = database
     fmt.Println("Koneksi database Berhasil!")
 
-    // Otomatis membuat/memperbarui tabel 'products' di database
-	err = DB.AutoMigrate(&models.Product{})
+    // Auto-migrate models to create/update tables
+	err = DB.AutoMigrate(&models.Product{}, &models.User{})
     if err != nil {
-        log.Fatal("Migrasi tabel GAGAL! \n", err)
+        log.Fatalf("Migrasi tabel GAGAL! \n%v", err)
     }
-    fmt.Println("Migrasi tabel 'products' Berhasil.")
+    fmt.Println("Migrasi tabel 'products' & 'users' Berhasil.")
 }
 
 // ConnectTestDatabase menginisialisasi koneksi ke database TEST dan mengembalikannya.

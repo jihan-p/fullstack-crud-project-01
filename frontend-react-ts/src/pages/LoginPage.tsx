@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth, UserState } from '../context/AuthContext';
 import { loginUser } from '../api/authApi';
 import FieldGroup from '../components/molecules/FieldGroup';
 import Button from '../components/atoms/Button';
@@ -21,8 +21,17 @@ const LoginPage: React.FC = () => {
         setError(null);
         try {
             const response = await loginUser(email, password);
-            // FIX: Pass both token and name to the login function
-            login(response.token, response.name);
+            // [DEBUG] Tampilkan respons dari API di konsol browser
+            console.log('[DEBUG] Login API Response:', response);
+
+            // 1. Create the UserState object from the API response
+            const userState: UserState = { 
+                id: response.user_id, // Get from response
+                name: response.name,   // Get from response
+                role: response.role,   // Get from response (this is crucial!)
+            };
+            // 2. Call the login function with the token AND the complete userState object
+            login(response.token, userState); 
             navigate('/products');
         } catch (err: any) {
             // Use the specific error message from the API response if available,

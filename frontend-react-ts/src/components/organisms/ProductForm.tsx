@@ -5,7 +5,7 @@ import FieldGroup from '../molecules/FieldGroup';
 import Button from '../atoms/Button';
 import { createProduct, updateProduct } from '../../api/productApi';
 import type { Product } from '../../types/Product';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 
 interface ProductFormProps {
     onSuccess: () => void; // Callback setelah submit sukses

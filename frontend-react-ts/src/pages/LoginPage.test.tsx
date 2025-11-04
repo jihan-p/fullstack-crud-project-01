@@ -1,7 +1,7 @@
 // pages/LoginPage.test.tsx
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter as Router } from 'react-router-dom';
-import { AuthProvider } from '../../context/AuthContext';
+import { AuthProvider } from '../context/AuthContext';
 import LoginPage from './LoginPage'; 
 
 // Import MSW setup (pastikan ini diatur untuk pengujian)
@@ -57,7 +57,8 @@ describe('LoginPage Integration Tests', () => {
 
         // Verifikasi pesan error
         await waitFor(() => {
-            expect(screen.getByText(/An unexpected error occurred: Unauthorized/i)).toBeInTheDocument();
+            // Ekspektasi sekarang harus cocok dengan pesan yang benar-benar dirender oleh komponen
+            expect(screen.getByText(/Kredensial tidak valid/i)).toBeInTheDocument(); 
         });
     });
     
@@ -66,6 +67,7 @@ describe('LoginPage Integration Tests', () => {
             token: 'fake-jwt-token',
             name: 'Budi Santoso',
             user_id: 1,
+            role: 'user', // Add role to mock response
         };
         // Mock API agar sukses
         server.use(

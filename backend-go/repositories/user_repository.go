@@ -36,6 +36,32 @@ func (r *userRepositoryImpl) FindByID(id uint) (models.User, error) {
 	return user, err
 }
 
+// FindAll retrieves a paginated and searchable list of users.
+func (r *userRepositoryImpl) FindAll(offset int, limit int, search string) ([]models.User, int64, error) {
+	var users []models.User
+	var total int64
+	
+	// 1. Build the base query
+	query := r.db.Model(&models.User{})
+	
+	// 2. Apply search filter if a search term is provided
+	if search != "" {
+		searchQuery := "%" + search + "%"
+		// Use LOWER() for case-insensitive search, which is compatible with MySQL and other databases.
+		// PostgreSQL's ILIKE is not universally supported.
+		query = query.Where("LOWER(name) LIKE LOWER(?) OR LOWER(email) LIKE LOWER(?)", searchQuery, searchQuery)
+	}
+	
+	// 3. Get the total count of records matching the search (before applying limit/offset)
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	
+	// 4. Get the paginated data, omitting the password hash for security
+	err := query.Omit("password_hash").Offset(offset).Limit(limit).Find(&users).Error
+	return users, total, err
+}
+
 // FindByResetToken retrieves a user by their reset token.
 func (r *userRepositoryImpl) FindByResetToken(token string) (*models.User, error) {
 	var user models.User

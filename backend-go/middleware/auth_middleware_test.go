@@ -22,12 +22,13 @@ func setupRouterWithMiddleware() *gin.Engine {
 	r.GET("/protected", middleware.AuthMiddleware(), func(c *gin.Context) {
 		// Handler ini hanya akan tercapai jika middleware berhasil.
 		// Kita bisa mengecek apakah data pengguna (claims) sudah disuntikkan dengan benar.
-		claims, exists := c.Get(middleware.UserKey)
+		userID, exists := c.Get(middleware.UserKey)
 		if !exists {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "User claims tidak ditemukan di context"})
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"message": "Welcome!", "claims": claims})
+		// For simplicity, just return the user ID from context
+		c.JSON(http.StatusOK, gin.H{"message": "Welcome!", "user_id": userID})
 	})
 	return r
 }
@@ -76,7 +77,7 @@ func TestAuthMiddleware(t *testing.T) {
 		// Buat token yang valid
 		userID := uint(99)
 		email := "test.middleware@example.com"
-		validToken, err := utils.GenerateToken(userID, email)
+		validToken, err := utils.GenerateToken(userID, email, "user") // <-- TAMBAHKAN ROLE
 		assert.NoError(t, err)
 
 		req, _ := http.NewRequest("GET", "/protected", nil)
@@ -89,6 +90,6 @@ func TestAuthMiddleware(t *testing.T) {
 
 		// Verifikasi bahwa handler menerima data pengguna dari context
 		assert.Contains(t, w.Body.String(), "Welcome!")
-		assert.Contains(t, w.Body.String(), `"claims":99`) // Check for the user ID
+		assert.Contains(t, w.Body.String(), `"user_id":99`) // Check for the user ID
 	})
 }

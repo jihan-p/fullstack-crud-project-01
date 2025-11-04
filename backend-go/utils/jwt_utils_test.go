@@ -15,9 +15,10 @@ func TestGenerateAndValidateToken(t *testing.T) {
 
 	userID := uint(123)
 	email := "test@example.com"
+	role := "user"
 
 	// 1. Test Token Generation
-	tokenString, err := utils.GenerateToken(userID, email)
+	tokenString, err := utils.GenerateToken(userID, email, role)
 	assert.NoError(t, err, "Token generation should not produce an error")
 	assert.NotEmpty(t, tokenString, "Generated token string should not be empty")
 
@@ -27,6 +28,7 @@ func TestGenerateAndValidateToken(t *testing.T) {
 	assert.NotNil(t, claims, "Claims should not be nil for a valid token")
 	assert.Equal(t, userID, claims.UserID, "User ID in claims should match the original")
 	assert.Equal(t, email, claims.Email, "Email in claims should match the original")
+	assert.Equal(t, role, claims.Role, "Role in claims should match the original")
 
 	// 3. Test Token Validation (Failure - Invalid Token)
 	invalidTokenString := tokenString + "invalid-part"
@@ -35,6 +37,6 @@ func TestGenerateAndValidateToken(t *testing.T) {
 
 	// 4. Test with empty secret
 	os.Unsetenv("JWT_SECRET_KEY")
-	_, err = utils.GenerateToken(userID, email)
+	_, err = utils.GenerateToken(userID, email, role)
 	assert.Error(t, err, "Generation should fail if JWT_SECRET_KEY is not set")
 }

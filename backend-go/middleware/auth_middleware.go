@@ -43,7 +43,8 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		// 3. Suntikkan Data Pengguna ke Konteks
 		// Data ini (UserID dan Email) sekarang bisa diakses oleh handler produk
-		c.Set(UserKey, claims.UserID) 
+		c.Set(UserKey, claims.UserID)
+		c.Set(UserRoleKey, claims.Role) // <-- TAMBAH INI
 		
 		// Lanjutkan ke handler berikutnya (misalnya, CreateProductHandler)
 		c.Next()

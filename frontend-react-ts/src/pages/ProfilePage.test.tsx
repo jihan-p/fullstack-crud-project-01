@@ -4,7 +4,7 @@ import { render, screen, waitFor, fireEvent, renderHook, act } from '@testing-li
 import { BrowserRouter as Router } from 'react-router-dom';
 import { http, HttpResponse } from 'msw';
 import { server } from '../mocks/server';
-import { AuthProvider, useAuth } from '../../context/AuthContext';
+import { AuthProvider, useAuth, UserState } from '../context/AuthContext';
 import ProfilePage from './ProfilePage';
 
 const mockNavigate = jest.fn();
@@ -19,7 +19,12 @@ const renderWithProviders = (component: React.ReactElement) => {
     );
     const { result } = renderHook(() => useAuth(), { wrapper });
     act(() => {
-        result.current.login('mock-test-token', 'Test User');
+        const mockRegularUser: UserState = {
+            id: 1,
+            name: 'Test User',
+            role: 'user',
+        };
+        result.current.login('mock-test-token', mockRegularUser);
     });
     return render(component, { wrapper });
 };

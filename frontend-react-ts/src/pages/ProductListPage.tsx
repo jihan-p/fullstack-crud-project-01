@@ -1,7 +1,7 @@
 // src/pages/ProductListPage.tsx
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import type { Product } from '../types/Product';
 import { getAllProducts, deleteProduct } from '../api/productApi';
 import ProductForm from '../components/organisms/ProductForm';
@@ -68,12 +68,6 @@ const ProductListPage: React.FC = () => {
         setFormKey(prev => prev + 1);
         await fetchProducts(); // Tunggu sampai selesai
     }, [fetchProducts]); // ✨ IMPROVEMENT: Bungkus dengan useCallback
-
-    const handleLogout = () => {
-        if (window.confirm("Apakah Anda yakin ingin keluar?")) {
-            logout();
-        }
-    };
 
     return (
         <div className="container mx-auto p-6">

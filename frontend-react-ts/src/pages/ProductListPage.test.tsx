@@ -4,7 +4,7 @@ import { render, screen, waitFor, renderHook, act } from '@testing-library/react
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { resetMockProducts, setMockProducts } from '../mocks/handlers';
-import { AuthProvider, useAuth } from '../../context/AuthContext';
+import { AuthProvider, useAuth, UserState } from '../context/AuthContext';
 import ProductListPage from './ProductListPage';
 
 // Helper untuk merender komponen dengan AuthProvider dan Router
@@ -15,7 +15,12 @@ const renderWithAuth = (component: React.ReactElement) => {
     );
     const { result } = renderHook(() => useAuth(), { wrapper });
     act(() => {
-        result.current.login('mock-test-token', 'Test User');
+        const mockRegularUser: UserState = {
+            id: 1,
+            name: 'Test User',
+            role: 'user',
+        };
+        result.current.login('mock-test-token', mockRegularUser);
     });
     return render(component, { wrapper });
 };

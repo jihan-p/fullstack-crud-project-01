@@ -13,11 +13,12 @@ import (
 type CustomClaims struct {
 	UserID uint   `json:"user_id"`
 	Email  string `json:"email"`
+	Role   string `json:"role"` // <-- TAMBAHKAN INI
 	jwt.RegisteredClaims
 }
 
 // GenerateToken membuat JWT baru untuk pengguna yang berhasil login.
-func GenerateToken(userID uint, email string) (string, error) {
+func GenerateToken(userID uint, email string, role string) (string, error) { // <-- Role sebagai argumen
 	jwtSecret := os.Getenv("JWT_SECRET_KEY")
 
 	// Pastikan Secret Key sudah diatur
@@ -32,6 +33,7 @@ func GenerateToken(userID uint, email string) (string, error) {
 	claims := &CustomClaims{
 		UserID: userID,
 		Email:  email,
+		Role:   role, // <-- MASUKKAN ROLE DI SINI
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Unix(expirationTime, 0)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

@@ -24,11 +24,12 @@ func setupUserRouter() (*gin.Engine, *models.User, string) {
 		Name:         "Test User",
 		Email:        "test@handler.com",
 		PasswordHash: "some_hash",
+		Role:         "user", // Explicitly set role for test user
 		IsActive:     true,
 	}
 	testDB.Create(user)
 
-	token, _ := utils.GenerateToken(user.ID, user.Email)
+	token, _ := utils.GenerateToken(user.ID, user.Email, user.Role) // Add role to token generation
 
 	// Setup DI
 	userRepo := repositories.NewUserRepository(testDB)
@@ -37,12 +38,12 @@ func setupUserRouter() (*gin.Engine, *models.User, string) {
 
 	// Setup Router
 	r := gin.Default()
-	users := r.Group("/api/v1/users")
-	users.Use(middleware.AuthMiddleware())
+	userProfile := r.Group("/api/v1/users/me")
+	userProfile.Use(middleware.AuthMiddleware())
 	{
-		users.GET("/me", userHandler.ReadUserHandler)
-		users.PUT("/me", userHandler.UpdateUserHandler)
-		users.DELETE("/me", userHandler.DeleteUserHandler)
+		userProfile.GET("", userHandler.ReadUserHandler)
+		userProfile.PUT("", userHandler.UpdateUserHandler)
+		userProfile.DELETE("", userHandler.DeleteUserHandler)
 	}
 
 	return r, user, token
@@ -51,7 +52,7 @@ func setupUserRouter() (*gin.Engine, *models.User, string) {
 func TestUserHandler_ReadUser_Success(t *testing.T) {
 	router, user, token := setupUserRouter()
 
-	req, _ := http.NewRequest("GET", "/api/v1/users/me", nil)
+	req, _ := http.NewRequest("GET", "/api/v1/users/me", nil) // Corrected endpoint
 	req.Header.Set("Authorization", "Bearer "+token)
 
 	w := httptest.NewRecorder()
@@ -70,7 +71,7 @@ func TestUserHandler_ReadUser_Success(t *testing.T) {
 func TestUserHandler_ReadUser_NoToken(t *testing.T) {
 	router, _, _ := setupUserRouter()
 
-	req, _ := http.NewRequest("GET", "/api/v1/users/me", nil)
+	req, _ := http.NewRequest("GET", "/api/v1/users/me", nil) // Corrected endpoint
 	// No Authorization header
 
 	w := httptest.NewRecorder()
@@ -83,7 +84,7 @@ func TestUserHandler_UpdateUser_Success(t *testing.T) {
 	router, user, token := setupUserRouter()
 
 	updatePayload := `{"Name": "Updated Name", "Email": "updated@handler.com"}`
-	req, _ := http.NewRequest("PUT", "/api/v1/users/me", bytes.NewBufferString(updatePayload))
+	req, _ := http.NewRequest("PUT", "/api/v1/users/me", bytes.NewBufferString(updatePayload)) // Corrected endpoint
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -104,7 +105,7 @@ func TestUserHandler_UpdateUser_ValidationError(t *testing.T) {
 
 	// Invalid payload (empty email)
 	updatePayload := `{"Name": "New Name", "Email": ""}`
-	req, _ := http.NewRequest("PUT", "/api/v1/users/me", bytes.NewBufferString(updatePayload))
+	req, _ := http.NewRequest("PUT", "/api/v1/users/me", bytes.NewBufferString(updatePayload)) // Corrected endpoint
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -117,7 +118,7 @@ func TestUserHandler_UpdateUser_ValidationError(t *testing.T) {
 func TestUserHandler_DeleteUser_Success(t *testing.T) {
 	router, user, token := setupUserRouter()
 
-	req, _ := http.NewRequest("DELETE", "/api/v1/users/me", nil)
+	req, _ := http.NewRequest("DELETE", "/api/v1/users/me", nil) // Corrected endpoint
 	req.Header.Set("Authorization", "Bearer "+token)
 
 	w := httptest.NewRecorder()

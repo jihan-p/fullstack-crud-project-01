@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App'; // Asumsi file App utama Anda adalah App.tsx
 import './index.css'; // Asumsi ada file CSS global
-import { AuthProvider } from '../context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
 
 /**
  * Fungsi asinkron untuk mengaktifkan mocking secara kondisional.

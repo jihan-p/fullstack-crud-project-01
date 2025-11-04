@@ -1,39 +1,49 @@
 // src/context/AuthContext.tsx
-// REKOMENDASI: Pindahkan file ini ke `src/context/AuthContext.tsx` untuk struktur proyek yang lebih baik.
 
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 
-// 1. Definisikan tipe untuk state autentikasi
+// 1. Define the specific literal type for roles
+export type UserRole = 'admin' | 'user';
+
+// 2. Define the shape of the user object to be stored in the context
+export interface UserState {
+    id: number;
+    name: string;
+    role: UserRole;
+}
+
+// 3. Define the shape of the entire authentication state
 interface AuthState {
     token: string | null;
-    name: string | null;
+    user: UserState | null; // <-- PASTIKAN USER STATE ADA
     isAuthenticated: boolean;
-    login: (token: string, name: string) => void;
+    login: (token: string, user: UserState) => void; // Perbarui tanda tangan fungsi login
     logout: () => void;
 }
 
-// 2. Buat Context dengan nilai default
+// 4. Create the Context with a default undefined value
 const AuthContext = createContext<AuthState | undefined>(undefined);
 
-// 3. Buat Provider Component
+// 5. Create the Provider Component
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [token, setToken] = useState<string | null>(localStorage.getItem('authToken'));
-    const [name, setName] = useState<string | null>(localStorage.getItem('userName'));
+    const [user, setUser] = useState<UserState | null>(() => {
+        const storedUser = localStorage.getItem('user');
+        return storedUser ? JSON.parse(storedUser) : null;
+    });
 
-    const login = useCallback((newToken: string, newName: string) => {
+    const login = useCallback((newToken: string, newUser: UserState) => {
         localStorage.setItem('authToken', newToken);
-        localStorage.setItem('userName', newName);
+        localStorage.setItem('user', JSON.stringify(newUser));
         setToken(newToken);
-        setName(newName);
+        setUser(newUser);
     }, []);
 
     const logout = useCallback(() => {
         localStorage.removeItem('authToken');
-        localStorage.removeItem('userName');
-        // Hapus juga data lain yang mungkin tersimpan
-        localStorage.removeItem('userID');
+        localStorage.removeItem('user');
         setToken(null);
-        setName(null);
+        setUser(null);
     }, []);
 
     const isAuthenticated = !!token;
@@ -44,8 +54,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (event.key === 'authToken') {
                 setToken(event.newValue);
             }
-            if (event.key === 'userName') {
-                setName(event.newValue);
+            if (event.key === 'user') {
+                setUser(event.newValue ? JSON.parse(event.newValue) : null);
             }
         };
 
@@ -58,13 +68,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, []);
 
     return (
-        <AuthContext.Provider value={{ token, name, isAuthenticated, login, logout }}>
+        <AuthContext.Provider value={{ token, user, isAuthenticated, login, logout }}>
             {children}
         </AuthContext.Provider>
     );
 };
 
-// 4. Buat Custom Hook untuk menggunakan context
+// 6. Create a Custom Hook for easy context consumption
 export const useAuth = (): AuthState => {
     const context = useContext(AuthContext);
     if (context === undefined) {

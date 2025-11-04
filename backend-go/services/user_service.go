@@ -17,6 +17,7 @@ type UserService interface {
 	ReadUserByID(id uint) (models.User, error)
 	UpdateUser(user *models.User) error
 	DeleteUser(id uint) error
+	FindAll(offset int, limit int, search string) ([]models.User, int64, error)
 }
 
 // UserRepository defines the database operations for a user.
@@ -27,6 +28,7 @@ type UserRepository interface {
 	FindByResetToken(token string) (*models.User, error)
 	Update(user *models.User) error
 	Delete(id uint) error
+	FindAll(offset int, limit int, search string) ([]models.User, int64, error)
 }
 
 type userServiceImpl struct {
@@ -73,4 +75,9 @@ func (s *userServiceImpl) UpdateUser(user *models.User) error {
 // DeleteUser removes a user by their ID.
 func (s *userServiceImpl) DeleteUser(id uint) error {
 	return s.userRepo.Delete(id)
+}
+
+// FindAll retrieves a paginated and searchable list of users.
+func (s *userServiceImpl) FindAll(offset int, limit int, search string) ([]models.User, int64, error) {
+	return s.userRepo.FindAll(offset, limit, search)
 }

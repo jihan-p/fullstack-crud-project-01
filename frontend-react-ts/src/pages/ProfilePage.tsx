@@ -1,7 +1,7 @@
 // src/pages/ProfilePage.tsx
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { fetchCurrentUser, updateCurrentUser, deleteCurrentUser } from '../api/userApi';
 import FieldGroup from '../components/molecules/FieldGroup';
 import Button from '../components/atoms/Button';

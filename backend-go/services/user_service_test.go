@@ -55,6 +55,15 @@ func (m *MockUserRepository) Delete(id uint) error {
 	return args.Error(0)
 }
 
+func (m *MockUserRepository) FindAll(offset int, limit int, search string) ([]models.User, int64, error) {
+	args := m.Called(offset, limit, search)
+	if users, ok := args.Get(0).([]models.User); ok {
+		return users, args.Get(1).(int64), args.Error(2)
+	}
+	// Return empty slice and 0 if the mock is not configured for a specific call
+	return []models.User{}, 0, args.Error(2)
+}
+
 func TestUserService_UpdateUser(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	userService := services.NewUserService(mockRepo)

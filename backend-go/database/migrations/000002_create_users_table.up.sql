@@ -5,6 +5,7 @@ CREATE TABLE users (
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     name VARCHAR(255),
+    role VARCHAR(20) NOT NULL DEFAULT 'user',
     is_active BOOLEAN DEFAULT FALSE,
     activation_token VARCHAR(255) NULL,
     reset_token VARCHAR(255) NULL,
