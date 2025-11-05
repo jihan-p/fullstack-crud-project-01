@@ -37,6 +37,19 @@ export const deleteCurrentUser = async (token: string): Promise<void> => {
 
 // --- Admin Functions ---
 
+type CreateUserData = {
+    Name: string;
+    Email: string;
+    Role: 'admin' | 'user';
+    Password?: string; // Password is required for creation
+};
+
+export const createUser = async (userData: CreateUserData, token: string): Promise<{ data: User }> => {
+    // The backend expects 'password', not 'Password'
+    const payload = { name: userData.Name, email: userData.Email, role: userData.Role, password: userData.Password };
+    return fetchWithAuth(USERS_URL, { method: 'POST', body: JSON.stringify(payload) }, token);
+};
+
 export const fetchAllUsers = async (page: number, limit: number, search: string, token: string): Promise<UserListResponse> => {
     const query = new URLSearchParams({
         page: page.toString(),

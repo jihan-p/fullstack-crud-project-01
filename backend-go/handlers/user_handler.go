@@ -22,6 +22,50 @@ func NewUserHandler(svc services.UserService) *UserHandler {
 	return &UserHandler{UserService: svc}
 }
 
+// AdminCreateUserRequest defines the payload for creating a user as an admin.
+type AdminCreateUserRequest struct {
+	Name     string `json:"name" binding:"required"`
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=8"`
+	Role     string `json:"role" binding:"required,oneof=user admin"`
+}
+
+// CreateUserHandler handles POST /admin/users
+func (h *UserHandler) CreateUserHandler(c *gin.Context) {
+	var req AdminCreateUserRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input", "details": err.Error()})
+		return
+	}
+
+	// The service layer will handle hashing and validation
+	newUser := &models.User{
+		Name:         req.Name,
+		Email:        req.Email,
+		PasswordHash: req.Password, // Pass raw password to service for hashing
+		Role:         req.Role,
+	}
+
+	err := h.UserService.CreateUserByAdmin(newUser)
+	if err != nil {
+		if errors.Is(err, services.ErrEmailExists) {
+			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user", "details": err.Error()})
+		return
+	}
+
+	// Omit password from response for security
+	newUser.PasswordHash = ""
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "User created successfully.",
+		"data":    newUser,
+	})
+}
+
 // ReadUserHandler handles GET /users/me
 func (h *UserHandler) ReadUserHandler(c *gin.Context) {
 	// Ambil User ID dari JWT yang disisipkan oleh middleware

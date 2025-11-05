@@ -7,6 +7,10 @@ import ProfilePage from './pages/ProfilePage';
 import UserListPage from './pages/UserListPage'; // NEW: Import UserListPage
 import { useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
+import RegisterPage from './pages/RegisterPage';
+import ActivationPage from './pages/ActivationPage';
 
 // Komponen Pelindung (Guard)
 const ProtectedRoute: React.FC<{ element: React.ReactElement; adminOnly?: boolean }> = ({ element, adminOnly = false }) => {
@@ -34,6 +38,10 @@ function App() {
         <main>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/activate" element={<ActivationPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/products" element={<ProtectedRoute element={<ProductListPage />} />} />
             <Route path="/profile" element={<ProtectedRoute element={<ProfilePage />} />} />
             <Route path="/users" element={<ProtectedRoute element={<UserListPage />} adminOnly={true} />} />

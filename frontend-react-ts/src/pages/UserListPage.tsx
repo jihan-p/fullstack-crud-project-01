@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { fetchAllUsers, updateUser, deleteUser, UserListResponse } from '../api/userApi';
-import type { User } from '../types/User';
+import { fetchAllUsers, updateUser, deleteUser, createUser, UserListResponse } from '../api/userApi';
+import type { User, UserRole } from '../types/User';
 import { useDebounce } from '../hooks/useDebounce';
 import Button from '../components/atoms/Button';
 import EditUserModal from '../components/organisms/EditUserModal';
@@ -60,16 +60,25 @@ const UserListPage: React.FC = () => {
         setEditingUser(null);
     };
 
-    const handleSaveUser = async (id: number, data: { Name: string; Email: string }) => {
+    const handleSaveUser = async (id: number, data: { Name: string; Email: string; Role: UserRole; Password?: string }) => {
         if (!token) throw new Error("Authentication token is missing.");
         try {
-            await updateUser(id, data, token);
+            if (id === 0) { // Create mode
+                await createUser(data, token);
+            } else { // Edit mode
+                await updateUser(id, data, token);
+            }
             handleModalClose();
             await fetchUsers(); // Refresh the list
         } catch (err) {
             // Re-throw the error to be caught and displayed by the modal
             throw err;
         }
+    };
+
+    const handleCreateUser = () => {
+        setEditingUser(null); // Null indicates 'create' mode for the modal
+        setIsModalOpen(true);
     };
 
     const handleDeleteUser = async (user: User) => {
@@ -92,15 +101,18 @@ const UserListPage: React.FC = () => {
     return (
         <div className="container mx-auto p-6">
             <h1 className="text-3xl font-bold mb-6">User Management</h1>
-
-            <div className="mb-4">
+            
+            <div className="flex justify-between items-center mb-4">
                 <input
                     type="text"
                     placeholder="Search by name or email..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-md"
+                    className="w-1/2 p-2 border border-gray-300 rounded-md"
                 />
+                <Button onClick={handleCreateUser}>
+                    + Create User
+                </Button>
             </div>
 
             {loading && <p>Loading users...</p>}

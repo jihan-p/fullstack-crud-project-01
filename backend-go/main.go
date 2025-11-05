@@ -63,6 +63,9 @@ func main() {
 		// Endpoint Pendaftaran (Register)
 		auth.POST("/register", authHandler.RegisterUser) 
 		
+		// Endpoint Aktivasi Akun
+		auth.POST("/activate", authHandler.ActivateUser)
+
 		// Endpoint Login
 		auth.POST("/login", authHandler.LoginUser)
 
@@ -101,6 +104,7 @@ func main() {
 	// Terapkan AuthMiddleware untuk otentikasi, lalu RoleCheckMiddleware untuk otorisasi
 	admin.Use(middleware.AuthMiddleware(), middleware.RoleCheckMiddleware("admin")) 
 	{
+		admin.POST("/users", userHandler.CreateUserHandler)         // POST /api/v1/admin/users
 		admin.GET("/users", userHandler.ReadAllUsersHandler)         // GET /api/v1/admin/users
 		admin.PUT("/users/:id", userHandler.UpdateUserByIDHandler)   // PUT /api/v1/admin/users/:id
 		admin.DELETE("/users/:id", userHandler.DeleteUserByIDHandler) // DELETE /api/v1/admin/users/:id

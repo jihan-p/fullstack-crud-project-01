@@ -1,7 +1,7 @@
 // src/pages/LoginPage.tsx
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth, UserState } from '../context/AuthContext';
 import { loginUser } from '../api/authApi';
 import FieldGroup from '../components/molecules/FieldGroup';
@@ -22,7 +22,7 @@ const LoginPage: React.FC = () => {
         try {
             const response = await loginUser(email, password);
             // [DEBUG] Tampilkan respons dari API di konsol browser
-            console.log('[DEBUG] Login API Response:', response);
+            // console.log('[DEBUG] Login API Response:', response);
 
             // 1. Create the UserState object from the API response
             const userState: UserState = { 
@@ -52,7 +52,7 @@ const LoginPage: React.FC = () => {
                         id="email"
                         type="email"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={e => setEmail(e.target.value)}
                         placeholder="you@example.com"
                         required
                     />
@@ -61,7 +61,7 @@ const LoginPage: React.FC = () => {
                         id="password"
                         type="password"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={e => setPassword(e.target.value)}
                         placeholder="••••••••"
                         required
                     />
@@ -69,6 +69,10 @@ const LoginPage: React.FC = () => {
                     <Button type="submit" disabled={isLoading} className="w-full">
                         {isLoading ? 'Logging in...' : 'Login'}
                     </Button>
+                    <div className="text-center mt-4 flex justify-between">
+                        <Link to="/register" className="text-sm text-blue-600 hover:underline">Create an account</Link>
+                        <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">Forgot Password?</Link>
+                    </div>
                 </form>
             </div>
         </div>

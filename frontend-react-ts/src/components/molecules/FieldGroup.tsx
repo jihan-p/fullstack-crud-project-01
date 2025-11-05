@@ -1,42 +1,42 @@
+// src/components/molecules/FieldGroup.tsx
+
 import React from 'react';
 
-// Menggunakan Atom Input yang baru dibuat
-import Input from '../atoms/Input'; 
+// Define a more flexible props interface
+type FieldGroupProps = {
+    id: string;
+    label: string;
+    as?: 'input' | 'select';
+    children?: React.ReactNode;
+    onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+} & Omit<React.InputHTMLAttributes<HTMLInputElement> & React.SelectHTMLAttributes<HTMLSelectElement>, 'onChange'>;
 
-interface FieldGroupProps {
-  label: string;
-  id: string;
-  type?: string;
-  value: string | number;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  placeholder?: string;
-  required?: boolean;
-}
-
-const FieldGroup: React.FC<FieldGroupProps> = ({ 
-  label, 
-  id, 
-  type = 'text', 
-  value, 
-  onChange, 
-  placeholder,
-  required = false
+const FieldGroup: React.FC<FieldGroupProps> = ({
+    label,
+    id,
+    as = 'input',
+    children,
+    ...props
 }) => {
-  return (
-    <div className="mb-4">
-      <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">
-        {label}
-      </label>
-      <Input
-        id={id}
-        type={type}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        required={required}
-      />
-    </div>
-  );
+    const commonClasses = "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline";
+
+    const renderField = () => {
+        if (as === 'select') {
+            return (
+                <select id={id} className={commonClasses} {...(props as React.SelectHTMLAttributes<HTMLSelectElement>)}>
+                    {children}
+                </select>
+            );
+        }
+        return <input id={id} className={commonClasses} {...(props as React.InputHTMLAttributes<HTMLInputElement>)} />;
+    };
+
+    return (
+        <div className="mb-4">
+            <label htmlFor={id} className="block text-gray-700 text-sm font-bold mb-2">{label}</label>
+            {renderField()}
+        </div>
+    );
 };
 
 export default FieldGroup;

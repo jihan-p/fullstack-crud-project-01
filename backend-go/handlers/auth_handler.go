@@ -67,11 +67,39 @@ func (h *AuthHandler) RegisterUser(c *gin.Context) {
     // 6. Kirim Email (SIMULASI - Ganti dengan logika kirim email sesungguhnya)
     // Di sini Anda akan memanggil layanan email Anda untuk mengirim link:
     // Contoh link: http://localhost:3000/activate?token=activationToken
+    log.Printf("SIMULASI: Mengirim email aktivasi ke %s dengan token %s", newUser.Email, *newUser.ActivationToken)
     
     c.JSON(http.StatusCreated, gin.H{
         "message": "Pendaftaran berhasil. Silakan cek email Anda untuk aktivasi akun.",
         "user_id": newUser.ID,
     })
+}
+
+// ActivateUser handles the account activation process.
+func (h *AuthHandler) ActivateUser(c *gin.Context) {
+	var req dto.ActivationRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid activation request."})
+		return
+	}
+
+	// 1. Find user by activation token
+	user, err := h.UserRepo.FindByActivationToken(req.Token)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or expired activation token."})
+		return
+	}
+
+	// 2. Activate user and clear token
+	user.IsActive = true
+	user.ActivationToken = nil // Clear the token so it can't be used again
+
+	if err := h.UserRepo.Update(user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to activate account."})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Account activated successfully. You can now log in."})
 }
 
 // LoginUser menghandle proses login pengguna

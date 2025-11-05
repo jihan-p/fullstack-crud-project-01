@@ -62,6 +62,13 @@ func (r *userRepositoryImpl) FindAll(offset int, limit int, search string) ([]mo
 	return users, total, err
 }
 
+// FindByActivationToken retrieves a user by their activation token.
+func (r *userRepositoryImpl) FindByActivationToken(token string) (*models.User, error) {
+	var user models.User
+	err := r.db.Where("activation_token = ?", token).First(&user).Error
+	return &user, err
+}
+
 // FindByResetToken retrieves a user by their reset token.
 func (r *userRepositoryImpl) FindByResetToken(token string) (*models.User, error) {
 	var user models.User

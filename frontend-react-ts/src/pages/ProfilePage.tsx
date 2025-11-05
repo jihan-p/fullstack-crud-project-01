@@ -1,7 +1,7 @@
 // src/pages/ProfilePage.tsx
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, UserRole } from '../context/AuthContext';
 import { fetchCurrentUser, updateCurrentUser, deleteCurrentUser } from '../api/userApi';
 import FieldGroup from '../components/molecules/FieldGroup';
 import Button from '../components/atoms/Button';
@@ -13,6 +13,7 @@ const ProfilePage: React.FC = () => {
 
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
+    const [role, setRole] = useState<UserRole>('user');
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -25,6 +26,7 @@ const ProfilePage: React.FC = () => {
                 const response = await fetchCurrentUser(token);
                 setName(response.data.Name);
                 setEmail(response.data.Email);
+                setRole(response.data.Role);
             } catch (err) {
                 setError('Failed to load user data.');
             } finally {
@@ -79,7 +81,7 @@ const ProfilePage: React.FC = () => {
                     label="Name"
                     id="name"
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={e => setName(e.target.value)}
                     required
                 />
                 <FieldGroup
@@ -87,8 +89,15 @@ const ProfilePage: React.FC = () => {
                     id="email"
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={e => setEmail(e.target.value)}
                     required
+                />
+                <FieldGroup
+                    label="Role"
+                    id="role"
+                    value={role}
+                    readOnly // Pengguna tidak bisa mengubah role mereka sendiri
+                    className="bg-gray-200 cursor-not-allowed" // Beri style untuk menandakan read-only
                 />
                 <div className="flex justify-between items-center mt-6">
                     <Button type="submit" disabled={isSubmitting}>
