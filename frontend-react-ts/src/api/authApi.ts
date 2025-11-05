@@ -1,6 +1,6 @@
 // src/api/authApi.ts
 
-import type { LoginResponse, UserRole } from '../types/Auth';
+import type { LoginResponse } from '../types/Auth';
 
 const API_BASE_URL = 'http://localhost:8080/api/v1';
 
